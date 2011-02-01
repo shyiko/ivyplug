@@ -1,0 +1,51 @@
+<idea-plugin version="2">
+    <name>IvyPlug</name>
+    <description>Provides integration with Apache Ivy dependency manager.</description>
+    <version>1.0</version>
+    <vendor email="stanley.shyiko@gmail.com" url="https://github.com/shyiko/ivyplug">Stanley Shyiko</vendor>
+    <idea-version since-build="8000"/>
+
+    <application-components>
+    </application-components>
+
+    <project-components>
+        <component>
+            <implementation-class>ivyplug.IvyProjectComponent</implementation-class>
+        </component>
+        <component>
+            <implementation-class>ivyplug.MessagesProjectComponent</implementation-class>
+        </component>
+    </project-components>
+
+    <module-components>
+        <component>
+            <implementation-class>ivyplug.dependencies.DependencySyncManager</implementation-class>
+        </component>
+        <component>
+            <implementation-class>ivyplug.ui.module.IvyModuleConfigurationModuleComponent</implementation-class>
+        </component>
+        <component>
+            <implementation-class>ivyplug.IvyModuleComponent</implementation-class>
+        </component>
+    </module-components>
+
+    <actions>
+        <group id="IvyPlugReimportGroup">
+            <separator/>
+            <add-to-group anchor="last" group-id="BuildMenu"/>
+            <add-to-group anchor="after" group-id="ProjectViewPopupMenu" relative-to-action="Compile"/>
+        </group>
+        <action id="ReimportAllIvyModulesAction" class="ivyplug.ReimportAllIvyModulesAction"
+                text="Reimport All Ivy Modules">
+            <add-to-group group-id="IvyPlugReimportGroup"/>
+        </action>
+        <action id="ReimportIvyDescriptor" class="ivyplug.ReimportIvyModuleAction"
+                text="Reimport Ivy Module">
+            <add-to-group group-id="IvyPlugReimportGroup"/>
+        </action>
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <moduleConfigurationEditorProvider implementation="ivyplug.ui.module.IvyModuleConfigurationEditorProvider"/>
+    </extensions>
+</idea-plugin>
