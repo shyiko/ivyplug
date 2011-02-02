@@ -4,6 +4,8 @@ import com.intellij.openapi.project.Project;
 import ivyplug.adapters.ProjectComponentAdapter;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.core.settings.IvyVariableContainer;
 import org.apache.ivy.util.DefaultMessageLogger;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +50,12 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
         }
     }
 
+    public void setVariables(String module, Map<String, String> variables) throws IvyException {
+        Ivy ivy = getIvy(module);
+        IvySettings settings = ivy.getSettings();
+        settings.addAllVariables(variables, true);
+    }
+
     private Ivy getIvy(String module) throws IvyException {
         Ivy result = moduleIvyMap.get(module);
         if (result == null) {
@@ -58,6 +66,7 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
             } catch (Exception e) {
                 throw new IvyException("Failed to load default ivysettings.xml", e);
             }
+            moduleIvyMap.put(module, result);
         }
         return result;
     }

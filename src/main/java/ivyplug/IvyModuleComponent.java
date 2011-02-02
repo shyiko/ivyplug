@@ -13,6 +13,8 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
@@ -64,6 +66,7 @@ public class IvyModuleComponent extends ModuleComponentAdapter implements Persis
         IvyModuleConfigurationModuleComponent.Configuration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
         File ivyXMl = configuration.getIvyXMlFile();
         if (ivyXMl != null) {
+            ivyProjectComponent.setVariables(module.getName(), configuration.getResolvedProperties());
             File ivySettingsXML = configuration.getIvySettingsXMlFile();
             if (ivySettingsXML != null)
                 ivyProjectComponent.configure(module.getName(), ivySettingsXML);

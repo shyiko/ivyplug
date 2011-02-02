@@ -6,6 +6,7 @@ import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationState;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import ivyplug.ui.PropertiesCompositePanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +15,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.io.File;
+import java.util.*;
+import java.util.List;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
@@ -22,11 +25,12 @@ import java.io.File;
 public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
 
     private final JPanel rootPanel = new JPanel(new GridBagLayout());
-    private final JCheckBox autoDiscoveryCheckBox  = new JCheckBox("Determine settings automatically", true);
+    private final JCheckBox autoDiscoveryCheckBox  = new JCheckBox("Determine ivy descriptor & settings file automatically", true);
     private final JLabel ivyXMLLabel = new JLabel("Path to ivy.xml file:");
     private final TextFieldWithBrowseButton ivyXML = new TextFieldWithBrowseButton();
     private final JLabel ivySettingsXMLLabel = new JLabel("Path to ivysettings.xml file:");
     private final TextFieldWithBrowseButton ivySettingsXML = new TextFieldWithBrowseButton();
+    private final PropertiesCompositePanel propertiesCompositePanel = new PropertiesCompositePanel();
 
     private final IvyModuleConfigurationModuleComponent ivyModuleConfigurationModuleComponent;
 
@@ -56,6 +60,7 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
         rootPanel.add(ivyXML, gc);
         rootPanel.add(ivySettingsXMLLabel, gc);
         rootPanel.add(ivySettingsXML, gc);
+        rootPanel.add(propertiesCompositePanel, gc);
         gc.weighty = 1.0;
         rootPanel.add(new JPanel(new GridBagLayout()), gc);
         rootPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -85,7 +90,7 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
         IvyModuleConfigurationModuleComponent.Configuration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
         return !(configuration.isUseAutoDiscovery() == autoDiscoveryCheckBox.isSelected() &&
                  equals(getPath(configuration.getIvyXMlFile()), ivyXML.getText()) &&
-                 equals(getPath(configuration.getIvySettingsXMlFile()), ivySettingsXML.getText()));
+                 equals(getPath(configuration.getIvySettingsXMlFile()), ivySettingsXML.getText())) || propertiesCompositePanel.isModified();
     }
 
     public void apply() throws ConfigurationException {
@@ -93,6 +98,17 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
         configuration.setUseAutoDiscovery(autoDiscoveryCheckBox.isSelected());
         configuration.setIvyXMlFile(getFile(ivyXML.getText()));
         configuration.setIvySettingsXMlFile(getFile(ivySettingsXML.getText()));
+        List<String> propertyFilesOriginList = propertiesCompositePanel.getPropertyFiles();
+        List<File> propertyFiles = new ArrayList<File>(propertyFilesOriginList.size());
+        for (String propertyFile : propertyFilesOriginList) {
+            File file = new File(propertyFile);
+            if (!file.exists())
+                throw new ConfigurationException("File " + file.getAbsolutePath() + " doesn't exist.");
+            propertyFiles.add(file);
+        }
+        configuration.setPropertyFiles(propertyFiles);
+        configuration.setCustomProperties(propertiesCompositePanel.getCustomProperties());
+        propertiesCompositePanel.setUnModified();
     }
 
     public void reset() {
@@ -100,6 +116,13 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
         autoDiscoveryCheckBox.setSelected(state.isUseAutoDiscovery());
         ivyXML.setText(getPath(state.getIvyXMlFile()));
         ivySettingsXML.setText(getPath(state.getIvySettingsXMlFile()));
+        List<File> propertyFilesOriginList = state.getPropertyFiles();
+        List<String> propertyFiles = new ArrayList<String>(propertyFilesOriginList.size());
+        for (File file : propertyFilesOriginList) {
+            propertyFiles.add(file.getAbsolutePath());
+        }
+        propertiesCompositePanel.setPropertyFiles(propertyFiles);
+        propertiesCompositePanel.setCustomProperties(state.getCustomProperties());
         onAutoDiscoveryModeChange();
     }
 
