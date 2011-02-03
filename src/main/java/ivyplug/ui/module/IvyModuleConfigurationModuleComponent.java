@@ -52,11 +52,6 @@ public class IvyModuleConfigurationModuleComponent extends ModuleComponentAdapte
         ivyModuleConfiguration = new IvyModuleConfiguration(module);
     }
 
-    @NotNull
-    public String getComponentName() {
-        return "IvyModuleConfigurationModuleComponent";
-    }
-
     public void loadState(Element state) {
         String useAutoDiscovery = state.getAttributeValue(USE_AUTO_DISCOVERY);
         ivyModuleConfiguration.setUseAutoDiscovery(useAutoDiscovery == null ||

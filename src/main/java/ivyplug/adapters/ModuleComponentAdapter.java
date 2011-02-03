@@ -17,6 +17,7 @@ package ivyplug.adapters;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
@@ -37,6 +38,11 @@ public abstract class ModuleComponentAdapter implements ModuleComponent {
     }
 
     public void moduleAdded() {
+    }
+
+    @NotNull
+    public String getComponentName() {
+        return this.getClass().getName();
     }
 
     public void initComponent() {

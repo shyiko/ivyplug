@@ -20,7 +20,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.dependencies.DependencySyncManager;
-import ivyplug.dependencies.DependencyType;
+import ivyplug.dependencies.LibraryDependency;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -75,11 +75,11 @@ public class ReimportManager {
         DependencySyncManager dependencySyncManager = module.getComponent(DependencySyncManager.class);
         for (ArtifactDownloadReport artifactDownloadReport : artifactDownloadReports) {
             Artifact artifact = artifactDownloadReport.getArtifact();
-            DependencyType type = getType(artifact);
+            LibraryDependency.ArtifactType type = getType(artifact);
             if (type == null)
                 continue;
             ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-            dependencySyncManager.addArtifactDependency(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(),
+            dependencySyncManager.addLibraryDependency(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(),
                     moduleRevisionId.getRevision(), type, artifactDownloadReport.getLocalFile());
         }
     }
@@ -109,17 +109,17 @@ public class ReimportManager {
         return result;
     }
 
-    private DependencyType getType(Artifact artifact) {
-        DependencyType result = null;
+    private LibraryDependency.ArtifactType getType(Artifact artifact) {
+        LibraryDependency.ArtifactType result = null;
         String artifactType = artifact.getType();
         if ("jar".equalsIgnoreCase(artifactType))
-                result = DependencyType.CLASSES;
+                result = LibraryDependency.ArtifactType.CLASSES;
         else
         if ("source".equalsIgnoreCase(artifactType))
-                result = DependencyType.SOURCES;
+                result = LibraryDependency.ArtifactType.SOURCES;
         else
         if ("javadoc".equalsIgnoreCase(artifactType))
-                result = DependencyType.JAVADOCS;
+                result = LibraryDependency.ArtifactType.JAVADOCS;
         return result;
     }
 

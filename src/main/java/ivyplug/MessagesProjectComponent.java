@@ -53,11 +53,6 @@ public class MessagesProjectComponent extends ProjectComponentAdapter {
         contentFactory = ContentFactory.SERVICE.getInstance();
     }
 
-    @NotNull
-    public String getComponentName() {
-        return "MessagesProjectComponent";
-    }
-
     public void open(Module module, ErrorTreeElementKind messageType, String[] message) {
         List<Map.Entry<ErrorTreeElementKind, String[]>> messageList = new LinkedList<Map.Entry<ErrorTreeElementKind, String[]>>();
         messageList.add(new AbstractMap.SimpleEntry<ErrorTreeElementKind, String[]>(messageType, message));

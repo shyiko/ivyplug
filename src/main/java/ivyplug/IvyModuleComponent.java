@@ -27,7 +27,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ResolveReport;
 import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -40,6 +39,7 @@ import java.io.File;
 )
 public class IvyModuleComponent extends ModuleComponentAdapter implements PersistentStateComponent<Element> {
 
+    // todo: load org on project opening
     private static final String STATE_ORG = "org";
     private IvyModuleConfigurationModuleComponent ivyModuleConfigurationModuleComponent;
     private IvyProjectComponent ivyProjectComponent;
@@ -49,11 +49,6 @@ public class IvyModuleComponent extends ModuleComponentAdapter implements Persis
         super(module);
         ivyModuleConfigurationModuleComponent = module.getComponent(IvyModuleConfigurationModuleComponent.class);
         ivyProjectComponent = module.getProject().getComponent(IvyProjectComponent.class);
-    }
-
-    @NotNull
-    public String getComponentName() {
-        return "IvyModuleComponent";
     }
 
     public void loadState(Element state) {

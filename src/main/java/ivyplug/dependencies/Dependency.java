@@ -16,9 +16,18 @@
 package ivyplug.dependencies;
 
 /**
- * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
- * @since 29.01.2011
+ * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
+ * @since 03.02.2011
  */
-public enum DependencyType {
-    LIBRARY, MODULE
+public abstract class Dependency {
+
+    private DependencyType dependencyType;
+
+    protected Dependency(DependencyType dependencyType) {
+        this.dependencyType = dependencyType;
+    }
+
+    public DependencyType getDependencyType() {
+        return dependencyType;
+    }
 }

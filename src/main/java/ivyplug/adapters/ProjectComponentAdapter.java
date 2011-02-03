@@ -17,6 +17,7 @@ package ivyplug.adapters;
 
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
@@ -34,6 +35,11 @@ public abstract class ProjectComponentAdapter implements ProjectComponent {
     }
 
     public void projectClosed() {
+    }
+
+    @NotNull
+    public String getComponentName() {
+        return this.getClass().getName();
     }
 
     public void initComponent() {

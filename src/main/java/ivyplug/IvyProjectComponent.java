@@ -48,11 +48,6 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
         moduleIvyMap = new HashMap<String, Ivy>();
     }
 
-    @NotNull
-    public String getComponentName() {
-        return "IvyProjectComponent";
-    }
-
     public void configure(String module, File ivySettingXml) throws IvyException {
         Ivy ivy = getIvy(module);
         ivy.popContext();

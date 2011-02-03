@@ -24,7 +24,6 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import ivyplug.adapters.ModuleComponentAdapter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -38,95 +37,51 @@ public class DependencySyncManager extends ModuleComponentAdapter {
 
     private static final String LIBRARY_PREFIX = "Ivy: ";
 
+    private Application application;
     private Project project;
     private LibraryTablesRegistrar libraryTablesRegistrar;
-    private Module module;
-    private Map<String, List<Dependency>> dependencies;
-    private Map<String, Module> modules;
-    private Application application;
+    private ModuleRootManager moduleRootManager;
+    private Set<LibraryDependency> libraryDependencies;
+    private Set<ModuleDependency> moduleDependencies;
 
     public DependencySyncManager(Module module) {
         super(module);
-        this.module = module;
+        application = ApplicationManager.getApplication();
         project = module.getProject();
         libraryTablesRegistrar = LibraryTablesRegistrar.getInstance();
-        dependencies = new HashMap<String, List<Dependency>>();
-        modules = new HashMap<String, Module>();
-        application = ApplicationManager.getApplication();
+        moduleRootManager = ModuleRootManager.getInstance(module);
+        libraryDependencies = new HashSet<LibraryDependency>();
+        moduleDependencies = new HashSet<ModuleDependency>();
     }
 
-    @NotNull
-    public String getComponentName() {
-        return "DependencySyncManager";
-    }
-
-    public void addArtifactDependency(String org, String module, String rev, DependencyType type, File file) {
-        String key = getKey(org, module, rev);
-        List<Dependency> dependencyList = dependencies.get(key);
-        if (dependencyList == null) {
-            dependencyList = new LinkedList<Dependency>();
-            dependencies.put(key, dependencyList);
-        }
-        dependencyList.add(new Dependency(type, file));
+    public void addLibraryDependency(String org, String module, String rev,
+                                     LibraryDependency.ArtifactType artifactType, File file) {
+        libraryDependencies.add(new LibraryDependency(org, module, rev, artifactType, file));
     }
 
     public void addModuleDependency(Module module) {
-        modules.put(module.getName(), module);
+        moduleDependencies.add(new ModuleDependency(module));
     }
 
     public void commit() {
-
-        // todo: refactor all this crap
+        final Set<LibraryDependency> libraryDependenciesToMerge = libraryDependencies;
+        final Set<ModuleDependency> moduleDependenciesToMerge = moduleDependencies;
+        libraryDependencies = new HashSet<LibraryDependency>();
+        moduleDependencies = new HashSet<ModuleDependency>();
         SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
 
+            public void run() {
                 application.runWriteAction(new Runnable() {
 
                     public void run() {
-
-                        LibraryTable libraryTable = libraryTablesRegistrar.getLibraryTable(project);
-                        for (Map.Entry<String, List<Dependency>> entry : dependencies.entrySet()) {
-                            Library library = libraryTable.getLibraryByName(entry.getKey());
-                            if (library == null) {
-                                library = libraryTable.createLibrary(entry.getKey());
-                            }
-                            merge(library, entry.getValue());
-                        }
-                        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-                        ModifiableRootModel modifiableRootModel = moduleRootManager.getModifiableModel();
-
-                        List<Library> libraries = new LinkedList<Library>();
-                        for (OrderEntry orderEntry : modifiableRootModel.getOrderEntries()) {
-                            if (orderEntry instanceof LibraryOrderEntry) {
-                                LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry) orderEntry;
-                                libraries.add(libraryOrderEntry.getLibrary());
-                            } else if (orderEntry instanceof ModuleOrderEntry) {
-                                ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry) orderEntry;
-                                modules.remove(moduleOrderEntry.getModuleName());
-                            }
-                        }
-
+                        ModifiableRootModel modifiableModuleModel = moduleRootManager.getModifiableModel();
                         try {
-                            LibraryTable moduleLibraryTable = modifiableRootModel.getModuleLibraryTable();
-                            Set<String> keys = dependencies.keySet();
-                            for (Library library : libraries) {
-                                if (!isGenerated(library))
-                                    continue;
-                                boolean keyWasPresent = keys.remove(library.getName());
-                                if (!keyWasPresent)
-                                    moduleLibraryTable.removeLibrary(library);
-                            }
-                            for (String key : dependencies.keySet()) {
-                                Library library = libraryTable.getLibraryByName(key);
-                                modifiableRootModel.addLibraryEntry(library);
-                            }
-                            for (Module projectModule : modules.values()) {
-                                modifiableRootModel.addModuleOrderEntry(projectModule);
-                            }
-
-
+                            mergeLibraryDependencies(modifiableModuleModel, libraryDependenciesToMerge);
+                            mergeModuleDependencies(modifiableModuleModel, moduleDependenciesToMerge);
+                            modifiableModuleModel.commit();
                         } finally {
-                            modifiableRootModel.commit();
+                            if (modifiableModuleModel.isWritable())
+                                modifiableModuleModel.dispose();
                         }
                     }
                 });
@@ -134,48 +89,83 @@ public class DependencySyncManager extends ModuleComponentAdapter {
         });
     }
 
-    private boolean isGenerated(Library library) {
-        String name = library.getName();
-        return name != null && name.startsWith(LIBRARY_PREFIX);
+    private void mergeLibraryDependencies(ModifiableRootModel modifiableModuleModel, Set<LibraryDependency> libraryDependenciesToCommit) {
+        LibraryTable projectLibraryTable = libraryTablesRegistrar.getLibraryTable(project);
+        Set<String> moduleLibraries = getModuleLibraries(modifiableModuleModel);
+        for (LibraryDependency libraryDependency : libraryDependenciesToCommit) {
+            String libraryName = getLibraryName(libraryDependency);
+            Library library = projectLibraryTable.getLibraryByName(libraryName);
+            if (library == null) {
+                library = projectLibraryTable.createLibrary(libraryName);
+            }
+            if (!moduleLibraries.contains(libraryName)) {
+                modifiableModuleModel.addLibraryEntry(library);
+            }
+            mergeLibraryDependency(library, libraryDependency);
+        }
     }
 
-    private String getKey(String org, String module, String rev) {
-        return String.format("%s%s:%s:%s", LIBRARY_PREFIX, org, module, rev);
+    private Set<String> getModuleLibraries(ModifiableRootModel modifiableModuleModel) {
+        Set<String> result = new HashSet<String>();
+        for (OrderEntry orderEntry : modifiableModuleModel.getOrderEntries()) {
+            if (orderEntry instanceof LibraryOrderEntry) {
+                LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry) orderEntry;
+                String libName = libraryOrderEntry.getLibraryName();
+                if (libName != null)
+                    result.add(libName);
+            }
+        }
+        return result;
     }
 
-    private void merge(Library library, List<Dependency> dependencies) {
+    private String getLibraryName(LibraryDependency libraryDependency) {
+        return String.format("%s%s:%s:%s", LIBRARY_PREFIX,
+                libraryDependency.getOrg(), libraryDependency.getModule(), libraryDependency.getRev());
+    }
+
+    private void mergeModuleDependencies(ModifiableRootModel modifiableModuleModel, Set<ModuleDependency> moduleDependenciesToCommit) {
+        Module[] moduleDependencies = modifiableModuleModel.getModuleDependencies();
+        Set<String> alreadyBoundModules = new HashSet<String>(moduleDependencies.length);
+        for (Module module : moduleDependencies) {
+            alreadyBoundModules.add(module.getName());
+        }
+        for (ModuleDependency moduleDependency : moduleDependenciesToCommit) {
+            Module module = moduleDependency.getModule();
+            if (!alreadyBoundModules.contains(module.getName()))
+                modifiableModuleModel.addModuleOrderEntry(module);
+        }
+    }
+
+    private void mergeLibraryDependency(Library library, LibraryDependency dependency) {
         Library.ModifiableModel modifiableModel = null;
         try {
-            String[] classes = library.getUrls(OrderRootType.CLASSES);
-            String[] sources = library.getUrls(OrderRootType.SOURCES);
-            String[] javadocs = library.getUrls(JavadocOrderRootType.getInstance());
-            for (Dependency dependency : dependencies) {
-                String dependencyURI = toURI(dependency.file);
-                String[] searchScope = null;
-                OrderRootType destType = null;
-                switch(dependency.type) {
-                    case CLASSES:
-                        searchScope = classes;
-                        destType = OrderRootType.CLASSES;
-                        break;
-                    case SOURCES:
-                        searchScope = sources;
-                        destType = OrderRootType.SOURCES;
-                        break;
-                    case JAVADOCS:
-                        searchScope = javadocs;
-                        destType = JavadocOrderRootType.getInstance();
-                        break;
-                }
-                for (String existingDependency : searchScope) {
-                    if (existingDependency.equals(dependencyURI)) {
-                        return;
-                    }
-                }
-                if (modifiableModel == null)
-                    modifiableModel = library.getModifiableModel();
-                modifiableModel.addRoot(dependencyURI, destType);
+            String[] searchScope;
+            OrderRootType orderRootType;
+            switch (dependency.getArtifactType()) {
+                case CLASSES:
+                    searchScope = library.getUrls(OrderRootType.CLASSES);
+                    orderRootType = OrderRootType.CLASSES;
+                    break;
+                case SOURCES:
+                    searchScope = library.getUrls(OrderRootType.SOURCES);
+                    orderRootType = OrderRootType.SOURCES;
+                    break;
+                case JAVADOCS:
+                    searchScope = library.getUrls(JavadocOrderRootType.getInstance());
+                    orderRootType = JavadocOrderRootType.getInstance();
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unsupported dependency's artifact type " +
+                        dependency.getArtifactType().name());
             }
+            String dependencyURI = toURI(dependency.getFile());
+            for (String existingDependency : searchScope) {
+                if (existingDependency.equals(dependencyURI)) {
+                    return;
+                }
+            }
+            modifiableModel = library.getModifiableModel();
+            modifiableModel.addRoot(dependencyURI, orderRootType);
         } finally {
             if (modifiableModel != null)
                 modifiableModel.commit();
@@ -188,16 +178,5 @@ public class DependencySyncManager extends ModuleComponentAdapter {
             result = "jar://" + result + "!/";
         }
         return result;
-    }
-
-    private class Dependency {
-
-        private DependencyType type;
-        private File file;
-
-        private Dependency(DependencyType type, File file) {
-            this.type = type;
-            this.file = file;
-        }
     }
 }

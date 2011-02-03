@@ -50,11 +50,6 @@ public class IvyProjectConfigurationProjectComponent extends ProjectComponentAda
         ivyProjectConfiguration = new IvyProjectConfiguration(project);
     }
 
-    @NotNull
-    public String getComponentName() {
-        return "IvyProjectConfigurationProjectComponent";
-    }
-
     public void loadState(Element state) {
         String ivySettingsXML = state.getAttributeValue(IVY_SETTINGS_XML_FILE);
         if (ivySettingsXML != null)
