@@ -13,19 +13,22 @@
             <implementation-class>ivyplug.IvyProjectComponent</implementation-class>
         </component>
         <component>
+            <implementation-class>ivyplug.ui.project.IvyProjectConfigurationProjectComponent</implementation-class>
+        </component>
+        <component>
             <implementation-class>ivyplug.MessagesProjectComponent</implementation-class>
         </component>
     </project-components>
 
     <module-components>
         <component>
-            <implementation-class>ivyplug.dependencies.DependencySyncManager</implementation-class>
+            <implementation-class>ivyplug.IvyModuleComponent</implementation-class>
         </component>
         <component>
             <implementation-class>ivyplug.ui.module.IvyModuleConfigurationModuleComponent</implementation-class>
         </component>
         <component>
-            <implementation-class>ivyplug.IvyModuleComponent</implementation-class>
+            <implementation-class>ivyplug.dependencies.DependencySyncManager</implementation-class>
         </component>
     </module-components>
 
@@ -46,6 +49,7 @@
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectConfigurable instance="ivyplug.ui.project.IvyProjectConfigurationEditor"/>
         <moduleConfigurationEditorProvider implementation="ivyplug.ui.module.IvyModuleConfigurationEditorProvider"/>
     </extensions>
 </idea-plugin>

@@ -5,6 +5,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.module.Module;
 import ivyplug.adapters.ModuleComponentAdapter;
+import ivyplug.ui.module.IvyModuleConfiguration;
 import ivyplug.ui.module.IvyModuleConfigurationModuleComponent;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -57,13 +58,13 @@ public class IvyModuleComponent extends ModuleComponentAdapter implements Persis
     }
 
     public boolean isIvyModule() {
-        IvyModuleConfigurationModuleComponent.Configuration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
+        IvyModuleConfiguration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
         return configuration.getIvyXMlFile() != null;
     }
 
     public ResolveReport resolve() throws IvyException {
         ResolveReport result = null;
-        IvyModuleConfigurationModuleComponent.Configuration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
+        IvyModuleConfiguration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
         File ivyXMl = configuration.getIvyXMlFile();
         if (ivyXMl != null) {
             ivyProjectComponent.setVariables(module.getName(), configuration.getResolvedProperties());
