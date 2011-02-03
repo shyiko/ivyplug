@@ -4,6 +4,7 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import ivyplug.adapters.ModuleComponentAdapter;
 import ivyplug.ui.module.IvyModuleConfiguration;
 import ivyplug.ui.module.IvyModuleConfigurationModuleComponent;
@@ -14,8 +15,6 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
@@ -63,11 +62,16 @@ public class IvyModuleComponent extends ModuleComponentAdapter implements Persis
     }
 
     public ResolveReport resolve() throws IvyException {
+        return resolve(null);
+    }
+
+    public ResolveReport resolve(ProgressIndicator indicator) throws IvyException {
         ResolveReport result = null;
         IvyModuleConfiguration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
         File ivyXMl = configuration.getIvyXMlFile();
         if (ivyXMl != null) {
             ivyProjectComponent.setVariables(module.getName(), configuration.getResolvedProperties());
+            ivyProjectComponent.bindWatcher(module.getName(), indicator);
             File ivySettingsXML = configuration.getIvySettingsXMlFile();
             if (ivySettingsXML != null)
                 ivyProjectComponent.configure(module.getName(), ivySettingsXML);

@@ -28,7 +28,7 @@ import java.awt.datatransfer.StringSelection;
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 31.01.2011
  */
-public class IvyModuleMessagesPanel extends JPanel implements DataProvider, CopyProvider {
+public class MessagesPanel extends JPanel implements DataProvider, CopyProvider {
 
     protected Project project;
 
@@ -37,7 +37,7 @@ public class IvyModuleMessagesPanel extends JPanel implements DataProvider, Copy
     private ExporterToTextFile exporterToTextFile;
     protected Tree messageTree;
 
-    public IvyModuleMessagesPanel(Project project) {
+    public MessagesPanel(Project project) {
         this.project = project;
         setLayout(new BorderLayout());
         JPanel rootPanel = new JPanel(new BorderLayout());

@@ -42,7 +42,7 @@ public class ReimportIvyModuleAction extends AnAction {
         httpConfigurable.setAuthenticator();
         new Task.Backgroundable(module.getProject(), "Synchronizing data", false) {
             public void run(@NotNull ProgressIndicator indicator) {
-                indicator.setText("Importing Ivy module \"" + module.getName() + "\"...");
+                indicator.setText("Preparing to synchronize \"" + module.getName() + "\" Ivy dependencies...");
                 indicator.setFraction(0.0);
                 IvyModuleComponent ivyModuleComponent = module.getComponent(IvyModuleComponent.class);
                 if (ivyModuleComponent.isIvyModule()) {
@@ -53,7 +53,7 @@ public class ReimportIvyModuleAction extends AnAction {
                         ReimportManager reimportManager = new ReimportManager();
                         ModuleManager moduleManager = ModuleManager.getInstance(project);
                         Map<String, ReimportManager.IvyModule> ivyModules = getIvyModules(moduleManager);
-                        ResolveReport resolveReport = ivyModuleComponent.resolve();
+                        ResolveReport resolveReport = ivyModuleComponent.resolve(indicator);
                         ReimportManager.IvyModule ivyModule = new ReimportManager.IvyModule(module, resolveReport);
                         List<ArtifactDownloadReport> failedArtifactsReports = ivyModule.getFailedArtifactsReports();
                         List<ArtifactDownloadReport> successfulArtifactsReports = ivyModule.getSuccessfulArtifactsReports();

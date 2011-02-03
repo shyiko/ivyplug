@@ -34,11 +34,11 @@ public class ReimportAllIvyModulesAction extends AnAction {
         httpConfigurable.setAuthenticator();
         new Task.Backgroundable(project, "Synchronizing data", false) {
             public void run(@NotNull ProgressIndicator indicator) {
-                indicator.setText("Importing Ivy modules...");
+                indicator.setText("Preparing to synchronize Ivy dependencies...");
                 indicator.setFraction(0.0);
                 ModuleManager moduleManager = ModuleManager.getInstance(project);
                 ReimportManager reimportManager = new ReimportManager();
-                Map<String, ReimportManager.IvyModule> ivyModules = getIvyModules(moduleManager);
+                Map<String, ReimportManager.IvyModule> ivyModules = getIvyModules(moduleManager, indicator);
                 for (ReimportManager.IvyModule ivyModule : ivyModules.values()) {
                     List<ArtifactDownloadReport> failedArtifactsReports = ivyModule.getFailedArtifactsReports();
                     List<ArtifactDownloadReport> successfulArtifactsReports = ivyModule.getSuccessfulArtifactsReports();
@@ -60,15 +60,17 @@ public class ReimportAllIvyModulesAction extends AnAction {
         }.queue();
     }
 
-    private Map<String, ReimportManager.IvyModule> getIvyModules(ModuleManager moduleManager) {
+    private Map<String, ReimportManager.IvyModule> getIvyModules(ModuleManager moduleManager, ProgressIndicator indicator) {
         Map<String, ReimportManager.IvyModule> result = new HashMap<String, ReimportManager.IvyModule>();
-        for (Module projectModule : moduleManager.getModules()) {
+        Module[] modules = moduleManager.getModules();
+        for (Module projectModule : modules) {
             MessagesProjectComponent messagesProjectComponent = projectModule.getProject().getComponent(MessagesProjectComponent.class);
             messagesProjectComponent.close(projectModule);
             IvyModuleComponent ivyModuleComponent = projectModule.getComponent(IvyModuleComponent.class);
             if (ivyModuleComponent.isIvyModule()) {
                 try {
-                    ResolveReport resolveReport = ivyModuleComponent.resolve();
+                    indicator.setText("Preparing to synchronize \"" + projectModule.getName() + "\" Ivy dependencies...");
+                    ResolveReport resolveReport = ivyModuleComponent.resolve(indicator);
                     ModuleRevisionId moduleRevisionId = resolveReport.getModuleDescriptor().getModuleRevisionId();
                     result.put(moduleRevisionId.getOrganisation() + ":" + moduleRevisionId.getName(),
                             new ReimportManager.IvyModule(projectModule, resolveReport));

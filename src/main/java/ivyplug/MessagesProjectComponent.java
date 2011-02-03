@@ -11,7 +11,7 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.content.MessageView;
 import ivyplug.adapters.ProjectComponentAdapter;
-import ivyplug.ui.IvyModuleMessagesPanel;
+import ivyplug.ui.MessagesPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -52,7 +52,7 @@ public class MessagesProjectComponent extends ProjectComponentAdapter {
         SwingUtilities.invokeLater(new Runnable() {
 
             public void run() {
-                IvyModuleMessagesPanel result = new IvyModuleMessagesPanel(project);
+                MessagesPanel result = new MessagesPanel(project);
                 for (Map.Entry<ErrorTreeElementKind, String[]> entry : messages) {
                     result.addMessage(entry.getKey(), entry.getValue());
                 }
