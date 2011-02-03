@@ -83,7 +83,9 @@ public class PropertiesPanel extends JPanel {
         add(propertyFilesWrapperPanel, BorderLayout.CENTER);
         JPanel controlPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
-                GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0);
+                GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 0), 0, 0);
+        addButton.setSize(new Dimension(104, 25));
+        addButton.setPreferredSize(new Dimension(104, 25));
         controlPanel.add(addButton, gc);
         controlPanel.add(removeButton, gc);
         gc.weighty = 1.0;

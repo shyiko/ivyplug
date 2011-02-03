@@ -28,6 +28,8 @@ public class PropertyFilesPanel extends JPanel {
     private final JBList propertyFilesList = new JBList(new DefaultListModel());
     private final JButton addButton = new JButton("Add");
     private final JButton removeButton = new JButton("Remove");
+    private final JButton moveUpButton = new JButton("Move Up");
+    private final JButton moveDownButton = new JButton("Move Down");
     private boolean modified;
 
     public PropertyFilesPanel() {
@@ -55,6 +57,31 @@ public class PropertyFilesPanel extends JPanel {
             }
         });
 
+        moveUpButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                DefaultListModel model = (DefaultListModel) propertyFilesList.getModel();
+                int selectedIndex = propertyFilesList.getSelectedIndex();
+                if (selectedIndex > 0) {
+                    Object selectedItem = model.remove(selectedIndex);
+                    model.add(selectedIndex - 1, selectedItem);
+                    propertyFilesList.setSelectedIndex(selectedIndex - 1);
+                }
+            }
+        });
+
+        moveDownButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                DefaultListModel model = (DefaultListModel) propertyFilesList.getModel();
+                int selectedIndex = propertyFilesList.getSelectedIndex();
+                int size = model.getSize();
+                if (selectedIndex + 1 < size) {
+                    Object selectedItem = model.remove(selectedIndex);
+                    model.add(selectedIndex + 1, selectedItem);
+                    propertyFilesList.setSelectedIndex(selectedIndex + 1);
+                }
+            }
+        });
+
         propertyFilesList.getModel().addListDataListener(new ListDataListener() {
 
             public void intervalAdded(ListDataEvent e) { setModified(); }
@@ -63,8 +90,8 @@ public class PropertyFilesPanel extends JPanel {
         });
 
         setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(100, 100));
-        setMinimumSize(new Dimension(100, 100));
+        setPreferredSize(new Dimension(100, 140));
+        setMinimumSize(new Dimension(100, 140));
         propertyFilesList.setBorder(BorderFactory.createEtchedBorder());
         JPanel propertyFilesWrapperPanel = new JPanel(new BorderLayout());
         propertyFilesWrapperPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
@@ -72,9 +99,13 @@ public class PropertyFilesPanel extends JPanel {
         add(propertyFilesWrapperPanel, BorderLayout.CENTER);
         JPanel controlPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
-                GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0);
+                GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 0), 0, 0);
+        addButton.setSize(new Dimension(104, 25));
+        addButton.setPreferredSize(new Dimension(104, 25));
         controlPanel.add(addButton, gc);
         controlPanel.add(removeButton, gc);
+        controlPanel.add(moveUpButton, gc);
+        controlPanel.add(moveDownButton, gc);
         gc.weighty = 1.0;
         controlPanel.add(new JPanel(new GridBagLayout()), gc);
         controlPanel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));

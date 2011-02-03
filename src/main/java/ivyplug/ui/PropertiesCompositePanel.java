@@ -19,7 +19,7 @@ public class PropertiesCompositePanel extends JPanel {
     public PropertiesCompositePanel() {
         setLayout(new GridBagLayout());
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
-                GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0);
+                GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 0), 0, 0);
         add(propertyFilesLabel, gc);
         add(propertyFilesPanel, gc);
         add(customPropertiesLabel, gc);
