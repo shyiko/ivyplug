@@ -1,5 +1,6 @@
 package ivyplug.ui;
 
+import com.intellij.ui.BooleanTableCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
@@ -8,8 +9,7 @@ import com.intellij.util.ui.ListTableModel;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -73,6 +73,15 @@ public class PropertiesPanel extends JPanel {
             }
         });
 
+        JTableHeader tableHeader = tableView.getTableHeader();
+        FontMetrics fontMetrics = tableHeader.getFontMetrics(tableHeader.getFont());
+        TableColumn nameColumn = tableHeader.getColumnModel().getColumn(0);
+        int preferredWidth = fontMetrics.stringWidth((String) nameColumn.getHeaderValue()) + 100;
+        nameColumn.setWidth(preferredWidth);
+        nameColumn.setPreferredWidth(preferredWidth);
+        nameColumn.setMinWidth(preferredWidth);
+        nameColumn.setMaxWidth(preferredWidth);
+
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(100, 100));
         setMinimumSize(new Dimension(100, 100));
@@ -128,7 +137,6 @@ public class PropertiesPanel extends JPanel {
     private void setModified() {
         modified = true;
     }
-
 
     private static abstract class AbstractVariableColumn extends ColumnInfo<Variable, String> {
 
