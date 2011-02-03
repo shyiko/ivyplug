@@ -3,6 +3,7 @@ package ivyplug;
 import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.dependencies.DependencySyncManager;
 import ivyplug.dependencies.DependencyType;
 import org.apache.ivy.core.module.descriptor.Artifact;
@@ -87,9 +88,9 @@ public class ReimportManager {
             result = new String[1];
         } else {
             result = new String[2];
-            result[1] = "Reason: " + downloadDetails;
+            result[1] = IvyPlugBundle.message("ivyexception.reason", downloadDetails);
         }
-        result[0] = "Failed to locate dependency " + report.getArtifact();
+        result[0] = IvyPlugBundle.message("failed.to.locate.dependency", report.getArtifact());
         return result;
     }
 

@@ -6,6 +6,7 @@ import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationState;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.ui.PropertiesCompositePanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
@@ -25,10 +26,11 @@ import java.util.List;
 public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
 
     private final JPanel rootPanel = new JPanel(new GridBagLayout());
-    private final JCheckBox autoDiscoveryCheckBox  = new JCheckBox("Determine ivy descriptor & settings file automatically", true);
-    private final JLabel ivyXMLLabel = new JLabel("Path to ivy.xml file:");
+    private final JCheckBox autoDiscoveryCheckBox  =
+            new JCheckBox(IvyPlugBundle.message("determine.ivy.descriptor.and.settings.file.automatically"), true);
+    private final JLabel ivyXMLLabel = new JLabel(IvyPlugBundle.message("path.to.ivy.xml.file"));
     private final TextFieldWithBrowseButton ivyXML = new TextFieldWithBrowseButton();
-    private final JLabel ivySettingsXMLLabel = new JLabel("Path to ivysettings.xml file:");
+    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("path.to.ivysettings.xml.file"));
     private final TextFieldWithBrowseButton ivySettingsXML = new TextFieldWithBrowseButton();
     private final PropertiesCompositePanel propertiesCompositePanel = new PropertiesCompositePanel();
 
@@ -46,12 +48,12 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
             }
         });
         ivyXML.addActionListener(new BrowseFilesListener(ivyXML.getTextField(),
-                "Select ivy.xml file location",
-                "Selected file will be used for dependencies resolving",
+                IvyPlugBundle.message("select.ivy.xml.file.location"),
+                IvyPlugBundle.message("selected.file.will.be.used.for.dependencies.resolving"),
                 BrowseFilesListener.SINGLE_FILE_DESCRIPTOR));
         ivySettingsXML.addActionListener(new BrowseFilesListener(ivySettingsXML.getTextField(),
-                "Select ivysettings.xml file location",
-                "Selected file will be used for Ivy configuration",
+                IvyPlugBundle.message("select.ivysettings.xml.file.location"),
+                IvyPlugBundle.message("selected.file.will.be.used.for.ivy.configuration"),
                 BrowseFilesListener.SINGLE_FILE_DESCRIPTOR));
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
                 GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0);
@@ -75,7 +77,7 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
 
     @Nls
     public String getDisplayName() {
-        return "IvyPlug Configuration";
+        return IvyPlugBundle.message("module.ivyplug.configuration");
     }
 
     public Icon getIcon() {
@@ -103,7 +105,7 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
         for (String propertyFile : propertyFilesOriginList) {
             File file = new File(propertyFile);
             if (!file.exists())
-                throw new ConfigurationException("File " + file.getAbsolutePath() + " doesn't exist.");
+                throw new ConfigurationException(IvyPlugBundle.message("file.doesnt.exist", file.getAbsolutePath()));
             propertyFiles.add(file);
         }
         configuration.setPropertyFiles(propertyFiles);
@@ -150,7 +152,7 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
         if (filePath != null && !filePath.trim().isEmpty()) {
             result = new File(filePath);
             if (!result.exists())
-                throw new ConfigurationException("File " + filePath + " doesn't exist.");
+                throw new ConfigurationException(IvyPlugBundle.message("file.doesnt.exist", filePath));
         }
         return result;
     }

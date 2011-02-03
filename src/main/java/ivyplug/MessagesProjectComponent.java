@@ -11,6 +11,7 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.content.MessageView;
 import ivyplug.adapters.ProjectComponentAdapter;
+import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.ui.MessagesPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,6 +82,6 @@ public class MessagesProjectComponent extends ProjectComponentAdapter {
     }
 
     private String getTabTitle(Module module) {
-        return "Ivy: \"" + module.getName() + "\"";
+        return IvyPlugBundle.message("messages.toolwindow.tab", module.getName());
     }
 }

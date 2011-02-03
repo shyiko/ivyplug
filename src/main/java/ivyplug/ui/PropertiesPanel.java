@@ -5,6 +5,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
+import ivyplug.bundles.IvyPlugBundle;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -22,14 +23,14 @@ import java.util.List;
  */
 public class PropertiesPanel extends JPanel {
 
-    private final JButton addButton = new JButton("Add");
-    private final JButton removeButton = new JButton("Remove");
+    private final JButton addButton = new JButton(IvyPlugBundle.message("button.add"));
+    private final JButton removeButton = new JButton(IvyPlugBundle.message("button.remove"));
     private final TableView<Variable> tableView;
     private boolean modified;
 
     public PropertiesPanel() {
         final ListTableModel<Variable> tableViewModel = new ListTableModel<Variable>(
-                new AbstractVariableColumn("Name") {
+                new AbstractVariableColumn(IvyPlugBundle.message("column.name")) {
 
                     public String valueOf(Variable variable) {
                         return variable.name;
@@ -38,7 +39,7 @@ public class PropertiesPanel extends JPanel {
                     public void setValue(Variable variable, String value) {
                         variable.name = value;
                     }
-                }, new AbstractVariableColumn("Value") {
+                }, new AbstractVariableColumn(IvyPlugBundle.message("column.value")) {
 
                     public String valueOf(Variable variable) {
                         return variable.value;

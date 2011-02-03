@@ -7,6 +7,7 @@ import com.intellij.openapi.fileChooser.FileTypeDescriptor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
+import ivyplug.bundles.IvyPlugBundle;
 
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
@@ -26,14 +27,15 @@ import java.util.List;
 public class PropertyFilesPanel extends JPanel {
 
     private final JBList propertyFilesList = new JBList(new DefaultListModel());
-    private final JButton addButton = new JButton("Add");
-    private final JButton removeButton = new JButton("Remove");
-    private final JButton moveUpButton = new JButton("Move Up");
-    private final JButton moveDownButton = new JButton("Move Down");
+    private final JButton addButton = new JButton(IvyPlugBundle.message("button.add"));
+    private final JButton removeButton = new JButton(IvyPlugBundle.message("button.remove"));
+    private final JButton moveUpButton = new JButton(IvyPlugBundle.message("button.move.up"));
+    private final JButton moveDownButton = new JButton(IvyPlugBundle.message("button.move.down"));
     private boolean modified;
 
     public PropertyFilesPanel() {
-        final FileChooserDescriptor fileChooserDescriptor = new FileTypeDescriptor("Add *.properties", "properties");
+        final FileChooserDescriptor fileChooserDescriptor =
+                new FileTypeDescriptor(IvyPlugBundle.message("filechooser.description.add.properties"), "properties");
         final FileChooserFactory instance = FileChooserFactory.getInstance();
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

@@ -11,6 +11,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.net.HttpConfigurable;
+import ivyplug.bundles.IvyPlugBundle;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
 import org.jetbrains.annotations.NotNull;
@@ -28,9 +29,8 @@ public class ReimportIvyModuleAction extends AnAction {
     public void update(AnActionEvent e) {
         Presentation presentation = e.getPresentation();
         Module module = e.getData(LangDataKeys.MODULE);
-        String name = "Reimport Ivy Module";
-        if (module != null)
-            name += " \"" + module.getName() + "\"";
+        String name = module == null ? IvyPlugBundle.message("reimport.ivy.module") :
+                                       IvyPlugBundle.message("reimport.ivy.module.parametrized", module.getName());
         presentation.setText(name);
     }
 
@@ -40,9 +40,9 @@ public class ReimportIvyModuleAction extends AnAction {
             return;
         HttpConfigurable httpConfigurable = HttpConfigurable.getInstance();
         httpConfigurable.setAuthenticator();
-        new Task.Backgroundable(module.getProject(), "Synchronizing data", false) {
+        new Task.Backgroundable(module.getProject(), IvyPlugBundle.message("synchronizing.data"), false) {
             public void run(@NotNull ProgressIndicator indicator) {
-                indicator.setText("Preparing to synchronize \"" + module.getName() + "\" Ivy dependencies...");
+                indicator.setText(IvyPlugBundle.message("preparing.to.synchronize.module.ivy.dependencies", module.getName()));
                 indicator.setFraction(0.0);
                 IvyModuleComponent ivyModuleComponent = module.getComponent(IvyModuleComponent.class);
                 if (ivyModuleComponent.isIvyModule()) {
@@ -72,7 +72,7 @@ public class ReimportIvyModuleAction extends AnAction {
                     } catch (IvyException ex) {
                         messagesProjectComponent.open(module, ErrorTreeElementKind.ERROR, new String[] {
                                 ex.getMessage(),
-                                 "Reason: " + ex.getCause().getMessage()
+                                IvyPlugBundle.message("ivyexception.reason", ex.getCause().getMessage())
                         });
 /*
                 Messages.showErrorDialog(ex.getMessage() + "\n" + "Reason: " + ex.getCause().getMessage(),

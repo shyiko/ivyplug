@@ -3,6 +3,7 @@ package ivyplug;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import ivyplug.adapters.ProjectComponentAdapter;
+import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.facade.DefaultEventManager;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.event.IvyEvent;
@@ -43,7 +44,7 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
         try {
             ivy.configure(ivySettingXml);
         } catch (Exception e) {
-            throw new IvyException("Failed to load " + ivySettingXml.getAbsolutePath(), e);
+            throw new IvyException(IvyPlugBundle.message("failed.configuration", ivySettingXml.getAbsolutePath()), e);
         }
     }
 
@@ -52,7 +53,7 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
         try {
             return ivy.resolve(ivyXml);
         } catch (Exception e) {
-            throw new IvyException("Failed to load " + ivyXml.getAbsolutePath(), e);
+            throw new IvyException(IvyPlugBundle.message("failed.resolve", ivyXml.getAbsolutePath()), e);
         }
     }
 
@@ -78,17 +79,16 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
                         Long downloaded = downloadStats.get(artifactURI);
                         downloaded = (downloaded == null ? 0 : downloaded) + e.getLength();
                         downloadStats.put(artifactURI, downloaded);
-                        indicator.setText("Downloading " + artifactURI + " (" + (downloaded / 1024)
-                                 + "Kb completed of " + (e.getTotalLength() / 1024) + "Kb)");
+                        indicator.setText(IvyPlugBundle.message("artifact.downloading.message", artifactURI, downloaded / 1024, e.getTotalLength() / 1024));
                     }
                 } else
                 if (event.getClass() == StartResolveDependencyEvent.class) {
                     StartResolveDependencyEvent e = (StartResolveDependencyEvent) event;
-                    indicator.setText("Resolving dependency " + e.getDependencyDescriptor().getDependencyRevisionId());
+                    indicator.setText(IvyPlugBundle.message("resolving.dependency.message", e.getDependencyDescriptor().getDependencyRevisionId()));
                 } else
                 if (event.getClass() == StartArtifactDownloadEvent.class) {
                     StartArtifactDownloadEvent e = (StartArtifactDownloadEvent) event;
-                    indicator.setText("Downloading " + e.getArtifact().getId());
+                    indicator.setText(IvyPlugBundle.message("pom.downloading.message", e.getArtifact().getId()));
                 }
             }
         });
@@ -105,7 +105,7 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
             try {
                 result.configureDefault();
             } catch (Exception e) {
-                throw new IvyException("Failed to load default ivysettings.xml", e);
+                throw new IvyException(IvyPlugBundle.message("failed.to.load.default.ivysettings.xml"), e);
             }
             moduleIvyMap.put(module, result);
         }

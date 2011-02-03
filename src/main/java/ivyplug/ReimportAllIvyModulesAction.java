@@ -10,6 +10,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.net.HttpConfigurable;
+import ivyplug.bundles.IvyPlugBundle;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
@@ -32,9 +33,9 @@ public class ReimportAllIvyModulesAction extends AnAction {
         }
         HttpConfigurable httpConfigurable = HttpConfigurable.getInstance();
         httpConfigurable.setAuthenticator();
-        new Task.Backgroundable(project, "Synchronizing data", false) {
+        new Task.Backgroundable(project, IvyPlugBundle.message("synchronizing.data"), false) {
             public void run(@NotNull ProgressIndicator indicator) {
-                indicator.setText("Preparing to synchronize Ivy dependencies...");
+                indicator.setText(IvyPlugBundle.message("preparing.to.synchronize.ivy.dependencies"));
                 indicator.setFraction(0.0);
                 ModuleManager moduleManager = ModuleManager.getInstance(project);
                 ReimportManager reimportManager = new ReimportManager();
@@ -69,15 +70,14 @@ public class ReimportAllIvyModulesAction extends AnAction {
             IvyModuleComponent ivyModuleComponent = projectModule.getComponent(IvyModuleComponent.class);
             if (ivyModuleComponent.isIvyModule()) {
                 try {
-                    indicator.setText("Preparing to synchronize \"" + projectModule.getName() + "\" Ivy dependencies...");
+                    indicator.setText(IvyPlugBundle.message("preparing.to.synchronize.module.ivy.dependencies", projectModule.getName()));
                     ResolveReport resolveReport = ivyModuleComponent.resolve(indicator);
                     ModuleRevisionId moduleRevisionId = resolveReport.getModuleDescriptor().getModuleRevisionId();
                     result.put(moduleRevisionId.getOrganisation() + ":" + moduleRevisionId.getName(),
                             new ReimportManager.IvyModule(projectModule, resolveReport));
                 } catch (IvyException ex) {
                     messagesProjectComponent.open(projectModule, ErrorTreeElementKind.ERROR, new String[] {
-                            ex.getMessage(),
-                             "Reason: " + ex.getCause().getMessage()
+                            ex.getMessage(), IvyPlugBundle.message("ivyexception.reason", ex.getCause().getMessage())
                     });
 /*
                     Messages.showErrorDialog(ex.getMessage() + "\n" + "Reason: " + ex.getCause().getMessage(),

@@ -1,5 +1,7 @@
 package ivyplug.ui;
 
+import ivyplug.bundles.IvyPlugBundle;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -11,9 +13,9 @@ import java.util.Map;
  */
 public class PropertiesCompositePanel extends JPanel {
 
-    private final JLabel propertyFilesLabel = new JLabel("Property files:");
+    private final JLabel propertyFilesLabel = new JLabel(IvyPlugBundle.message("composite.panel.property.files"));
     private final PropertyFilesPanel propertyFilesPanel = new PropertyFilesPanel();
-    private final JLabel customPropertiesLabel = new JLabel("Custom properties:");
+    private final JLabel customPropertiesLabel = new JLabel(IvyPlugBundle.message("composite.panel.custom.properties"));
     private final PropertiesPanel customPropertiesPanel = new PropertiesPanel();
 
     public PropertiesCompositePanel() {

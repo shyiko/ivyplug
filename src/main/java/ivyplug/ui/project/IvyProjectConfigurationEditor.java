@@ -5,6 +5,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.ui.PropertiesCompositePanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +23,7 @@ import java.util.List;
 public class IvyProjectConfigurationEditor implements Configurable {
 
     private final JPanel rootPanel = new JPanel(new GridBagLayout());
-    private final JLabel ivySettingsXMLLabel = new JLabel("Path to ivysettings.xml file:");
+    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("path.to.ivysettings.xml.file"));
     private final TextFieldWithBrowseButton ivySettingsXML = new TextFieldWithBrowseButton();
     private final PropertiesCompositePanel propertiesCompositePanel = new PropertiesCompositePanel();
 
@@ -34,8 +35,8 @@ public class IvyProjectConfigurationEditor implements Configurable {
 
     public JComponent createComponent() {
         ivySettingsXML.addActionListener(new BrowseFilesListener(ivySettingsXML.getTextField(),
-                "Select ivysettings.xml file location",
-                "Selected file will be used for Ivy configuration",
+                IvyPlugBundle.message("select.ivysettings.xml.file.location"),
+                IvyPlugBundle.message("selected.file.will.be.used.for.ivy.configuration"),
                 BrowseFilesListener.SINGLE_FILE_DESCRIPTOR));
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
                 GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0);
@@ -50,7 +51,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
 
     @Nls
     public String getDisplayName() {
-        return "IvyPlug Configuration";
+        return IvyPlugBundle.message("project.ivyplug.configuration");
     }
 
     public Icon getIcon() {
@@ -75,7 +76,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
         for (String propertyFile : propertyFilesOriginList) {
             File file = new File(propertyFile);
             if (!file.exists())
-                throw new ConfigurationException("File " + file.getAbsolutePath() + " doesn't exist.");
+                throw new ConfigurationException(IvyPlugBundle.message("file.doesnt.exist", file.getAbsolutePath()));
             propertyFiles.add(file);
         }
         configuration.setPropertyFiles(propertyFiles);
@@ -113,7 +114,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
         if (filePath != null && !filePath.trim().isEmpty()) {
             result = new File(filePath);
             if (!result.exists())
-                throw new ConfigurationException("File " + filePath + " doesn't exist.");
+                throw new ConfigurationException(IvyPlugBundle.message("file.doesnt.exist", filePath));
         }
         return result;
     }
