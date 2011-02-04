@@ -15,11 +15,11 @@
  */
 package ivyplug.ui.configuration.module;
 
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.module.Module;
-import ivyplug.adapters.ModuleComponentAdapter;
+import com.intellij.openapi.module.ModuleComponent;
+import ivyplug.ui.configuration.ConfigurationComponent;
 import org.jdom.Element;
 
 import java.io.File;
@@ -32,109 +32,36 @@ import java.util.*;
 @State(name = "IvyModuleConfigurationModuleComponent",
        storages = {@Storage(id = "other", file = "$MODULE_FILE$")}
 )
-public class IvyModuleConfigurationModuleComponent extends ModuleComponentAdapter implements PersistentStateComponent<Element> {
+public class IvyModuleConfigurationModuleComponent extends ConfigurationComponent implements ModuleComponent {
 
     private static final String USE_AUTO_DISCOVERY = "useAutoDiscovery";
-    private static final String IVY_XML_FILE = "ivyXMLFile";
-    private static final String IVY_SETTINGS_XML_FILE = "ivySettingsXMLFile";
-    private static final String SETTINGS_ELEMENT_NAME = "ivyPlugSettings";
-    private static final String PROPERTY_FILES_ELEMENT_NAME = "propertyFiles";
-    private static final String PROPERTY_FILES_ATTRIBUTE_NAME = "attribute";
-    private static final String CUSTOM_PROPERTIES_ELEMENT_NAME = "customProperties";
-    private static final String CUSTOM_PROPERTIES_ATTRIBUTE_NAME = "attribute";
-    private static final String CUSTOM_PROPERTIES_ATTRIBUTE_KEY_NAME = "name";
-
-    private final IvyModuleConfiguration ivyModuleConfiguration;
 
     public IvyModuleConfigurationModuleComponent(Module module) {
-        super(module);
-        ivyModuleConfiguration = new IvyModuleConfiguration(module);
+        super(new IvyModuleConfiguration(module));
     }
 
     public void loadState(Element state) {
+        super.loadState(state);
         String useAutoDiscovery = state.getAttributeValue(USE_AUTO_DISCOVERY);
-        ivyModuleConfiguration.setUseAutoDiscovery(useAutoDiscovery == null ||
-                                          useAutoDiscovery.equalsIgnoreCase("true"));
-        String ivyXML = state.getAttributeValue(IVY_XML_FILE);
-        if (ivyXML != null)
-            ivyModuleConfiguration.setIvyXMlFile(new File(ivyXML));
-        String ivySettingsXML = state.getAttributeValue(IVY_SETTINGS_XML_FILE);
-        if (ivySettingsXML != null)
-            ivyModuleConfiguration.setIvySettingsXMlFile(new File(ivySettingsXML));
-        loadPropertyFiles(state);
-        loadCustomProperties(state);
+        getConfiguration().setUseAutoDiscovery(useAutoDiscovery == null || useAutoDiscovery.equalsIgnoreCase("true"));
     }
 
     public Element getState() {
-        Boolean useAutoDiscovery = ivyModuleConfiguration.isUseAutoDiscovery();
-        File ivyXMl = ivyModuleConfiguration.getIvyXMlFile();
-        File ivySettingsXMl = ivyModuleConfiguration.getIvySettingsXMlFile();
-        Element element = new Element(SETTINGS_ELEMENT_NAME);
-        if (ivyXMl != null)
-            element.setAttribute(IVY_XML_FILE, ivyXMl.getAbsolutePath());
-        if (ivySettingsXMl != null)
-            element.setAttribute(IVY_SETTINGS_XML_FILE, ivySettingsXMl.getAbsolutePath());
-        element.setAttribute(USE_AUTO_DISCOVERY, useAutoDiscovery.toString());
-        element.addContent(getPropertyFiles());
-        element.addContent(getCustomProperties());
-        return element;
+        Element result = super.getState();
+        result.setAttribute(USE_AUTO_DISCOVERY, ((Boolean) getConfiguration().isUseAutoDiscovery()).toString());
+        return result;
     }
 
     public IvyModuleConfiguration getConfiguration() {
-        return ivyModuleConfiguration;
+        return (IvyModuleConfiguration) super.getConfiguration();
     }
 
-    private void loadPropertyFiles(Element state) {
-        Element element = state.getChild(PROPERTY_FILES_ELEMENT_NAME);
-        List<File> propertyFiles;
-        if (element == null) {
-            propertyFiles = Collections.emptyList();
-        } else {
-            List children = element.getChildren(PROPERTY_FILES_ATTRIBUTE_NAME);
-            propertyFiles = new ArrayList<File>(children.size());
-            for (Object attribute_ : children) {
-                Element attribute = (Element) attribute_;
-                propertyFiles.add(new File(attribute.getTextTrim()));
-            }
-        }
-        ivyModuleConfiguration.setPropertyFiles(propertyFiles);
+    public void projectOpened() {
     }
 
-    private void loadCustomProperties(Element state) {
-        Element element = state.getChild(CUSTOM_PROPERTIES_ELEMENT_NAME);
-        Map<String, String> customProperties;
-        if (element == null) {
-            customProperties = Collections.emptyMap();
-        } else {
-            List children = element.getChildren(CUSTOM_PROPERTIES_ATTRIBUTE_NAME);
-            customProperties = new HashMap<String, String>(children.size());
-            for (Object attribute_ : children) {
-                Element attribute = (Element) attribute_;
-                customProperties.put(attribute.getAttributeValue(CUSTOM_PROPERTIES_ATTRIBUTE_KEY_NAME),
-                        attribute.getTextTrim());
-            }
-        }
-        ivyModuleConfiguration.setCustomProperties(customProperties);
+    public void projectClosed() {
     }
 
-    private Element getPropertyFiles() {
-        Element result = new Element(PROPERTY_FILES_ELEMENT_NAME);
-        for (File file : ivyModuleConfiguration.getPropertyFiles()) {
-            Element attribute = new Element(PROPERTY_FILES_ATTRIBUTE_NAME);
-            attribute.setText(file.getAbsolutePath());
-            result.addContent(attribute);
-        }
-        return result;
-    }
-
-    private Element getCustomProperties() {
-        Element result = new Element(CUSTOM_PROPERTIES_ELEMENT_NAME);
-        for (Map.Entry<String, String> entry: ivyModuleConfiguration.getCustomProperties().entrySet()){
-            Element attribute = new Element(CUSTOM_PROPERTIES_ATTRIBUTE_NAME);
-            attribute.setAttribute(CUSTOM_PROPERTIES_ATTRIBUTE_KEY_NAME, entry.getKey());
-            attribute.setText(entry.getValue());
-            result.addContent(attribute);
-        }
-        return result;
+    public void moduleAdded() {
     }
 }

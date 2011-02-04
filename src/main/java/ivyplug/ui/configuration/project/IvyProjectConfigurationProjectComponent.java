@@ -15,15 +15,12 @@
  */
 package ivyplug.ui.configuration.project;
 
-import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
-import ivyplug.adapters.ProjectComponentAdapter;
+import ivyplug.ui.configuration.ConfigurationComponent;
 import org.jdom.Element;
-
-import java.io.File;
-import java.util.*;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
@@ -32,101 +29,33 @@ import java.util.*;
 @State(name = "IvyProjectConfigurationProjectComponent",
        storages = {@Storage(id = "other", file = "$PROJECT_FILE$")}
 )
-public class IvyProjectConfigurationProjectComponent extends ProjectComponentAdapter implements PersistentStateComponent<Element> {
+public class IvyProjectConfigurationProjectComponent extends ConfigurationComponent implements ProjectComponent {
 
     private static final String AUTO_CLEANUP = "autoCleanup";
-    private static final String IVY_SETTINGS_XML_FILE = "ivySettingsXMLFile";
-    private static final String SETTINGS_ELEMENT_NAME = "ivyPlugSettings";
-    private static final String PROPERTY_FILES_ELEMENT_NAME = "propertyFiles";
-    private static final String PROPERTY_FILES_ATTRIBUTE_NAME = "attribute";
-    private static final String CUSTOM_PROPERTIES_ELEMENT_NAME = "customProperties";
-    private static final String CUSTOM_PROPERTIES_ATTRIBUTE_NAME = "attribute";
-    private static final String CUSTOM_PROPERTIES_ATTRIBUTE_KEY_NAME = "name";
-
-    private final IvyProjectConfiguration ivyProjectConfiguration;
 
     public IvyProjectConfigurationProjectComponent(Project project) {
-        super(project);
-        ivyProjectConfiguration = new IvyProjectConfiguration(project);
+        super(new IvyProjectConfiguration(project));
     }
 
     public void loadState(Element state) {
+        super.loadState(state);
         String autoCleanup = state.getAttributeValue(AUTO_CLEANUP);
-        ivyProjectConfiguration.setAutoCleanup(autoCleanup == null ||
-                                               autoCleanup.equalsIgnoreCase("true"));
-        String ivySettingsXML = state.getAttributeValue(IVY_SETTINGS_XML_FILE);
-        if (ivySettingsXML != null)
-            ivyProjectConfiguration.setIvySettingsXMlFile(new File(ivySettingsXML));
-        loadPropertyFiles(state);
-        loadCustomProperties(state);
+        getConfiguration().setAutoCleanup(autoCleanup == null || autoCleanup.equalsIgnoreCase("true"));
     }
 
     public Element getState() {
-        Element element = new Element(SETTINGS_ELEMENT_NAME);
-        element.setAttribute(AUTO_CLEANUP, ((Boolean) ivyProjectConfiguration.isAutoCleanup()).toString());
-        File ivySettingsXMl = ivyProjectConfiguration.getIvySettingsXMlFile();
-        if (ivySettingsXMl != null)
-            element.setAttribute(IVY_SETTINGS_XML_FILE, ivySettingsXMl.getAbsolutePath());
-        element.addContent(getPropertyFiles());
-        element.addContent(getCustomProperties());
-        return element;
+        Element result = super.getState();
+        result.setAttribute(AUTO_CLEANUP, ((Boolean) getConfiguration().isAutoCleanup()).toString());
+        return result;
     }
 
     public IvyProjectConfiguration getConfiguration() {
-        return ivyProjectConfiguration;
+        return (IvyProjectConfiguration) super.getConfiguration();
     }
 
-    private void loadPropertyFiles(Element state) {
-        Element element = state.getChild(PROPERTY_FILES_ELEMENT_NAME);
-        List<File> propertyFiles;
-        if (element == null) {
-            propertyFiles = Collections.emptyList();
-        } else {
-            List children = element.getChildren(PROPERTY_FILES_ATTRIBUTE_NAME);
-            propertyFiles = new ArrayList<File>(children.size());
-            for (Object attribute_ : children) {
-                Element attribute = (Element) attribute_;
-                propertyFiles.add(new File(attribute.getTextTrim()));
-            }
-        }
-        ivyProjectConfiguration.setPropertyFiles(propertyFiles);
+    public void projectOpened() {
     }
 
-    private void loadCustomProperties(Element state) {
-        Element element = state.getChild(CUSTOM_PROPERTIES_ELEMENT_NAME);
-        Map<String, String> customProperties;
-        if (element == null) {
-            customProperties = Collections.emptyMap();
-        } else {
-            List children = element.getChildren(CUSTOM_PROPERTIES_ATTRIBUTE_NAME);
-            customProperties = new HashMap<String, String>(children.size());
-            for (Object attribute_ : children) {
-                Element attribute = (Element) attribute_;
-                customProperties.put(attribute.getAttributeValue(CUSTOM_PROPERTIES_ATTRIBUTE_KEY_NAME),
-                        attribute.getTextTrim());
-            }
-        }
-        ivyProjectConfiguration.setCustomProperties(customProperties);
-    }
-
-    private Element getPropertyFiles() {
-        Element result = new Element(PROPERTY_FILES_ELEMENT_NAME);
-        for (File file : ivyProjectConfiguration.getPropertyFiles()) {
-            Element attribute = new Element(PROPERTY_FILES_ATTRIBUTE_NAME);
-            attribute.setText(file.getAbsolutePath());
-            result.addContent(attribute);
-        }
-        return result;
-    }
-
-    private Element getCustomProperties() {
-        Element result = new Element(CUSTOM_PROPERTIES_ELEMENT_NAME);
-        for (Map.Entry<String, String> entry: ivyProjectConfiguration.getCustomProperties().entrySet()){
-            Element attribute = new Element(CUSTOM_PROPERTIES_ATTRIBUTE_NAME);
-            attribute.setAttribute(CUSTOM_PROPERTIES_ATTRIBUTE_KEY_NAME, entry.getKey());
-            attribute.setText(entry.getValue());
-            result.addContent(attribute);
-        }
-        return result;
+    public void projectClosed() {
     }
 }
