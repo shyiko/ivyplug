@@ -21,6 +21,7 @@ import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationState;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.IconLoader;
 import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.ui.PropertiesCompositePanel;
 import org.jetbrains.annotations.Nls;
@@ -31,6 +32,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.io.File;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 
@@ -39,6 +41,8 @@ import java.util.List;
  * @since 30.01.2011
  */
 public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
+
+    private static final Icon IVY_ICON = IconLoader.getIcon("/images/ivy.png");
 
     private final JPanel rootPanel = new JPanel(new GridBagLayout());
     private final JCheckBox autoDiscoveryCheckBox  =
@@ -96,7 +100,7 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
     }
 
     public Icon getIcon() {
-        return null;
+        return IVY_ICON;
     }
 
     public String getHelpTopic() {
