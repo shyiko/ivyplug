@@ -18,6 +18,9 @@
         <component>
             <implementation-class>ivyplug.MessagesProjectComponent</implementation-class>
         </component>
+        <component>
+            <implementation-class>ivyplug.dependencies.ProjectDependenciesManager</implementation-class>
+        </component>
     </project-components>
 
     <module-components>

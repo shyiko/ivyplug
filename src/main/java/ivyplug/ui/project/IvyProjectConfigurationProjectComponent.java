@@ -21,7 +21,6 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import ivyplug.adapters.ProjectComponentAdapter;
 import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
@@ -35,6 +34,7 @@ import java.util.*;
 )
 public class IvyProjectConfigurationProjectComponent extends ProjectComponentAdapter implements PersistentStateComponent<Element> {
 
+    private static final String AUTO_CLEANUP = "autoCleanup";
     private static final String IVY_SETTINGS_XML_FILE = "ivySettingsXMLFile";
     private static final String SETTINGS_ELEMENT_NAME = "ivyPlugSettings";
     private static final String PROPERTY_FILES_ELEMENT_NAME = "propertyFiles";
@@ -51,6 +51,9 @@ public class IvyProjectConfigurationProjectComponent extends ProjectComponentAda
     }
 
     public void loadState(Element state) {
+        String autoCleanup = state.getAttributeValue(AUTO_CLEANUP);
+        ivyProjectConfiguration.setAutoCleanup(autoCleanup == null ||
+                                               autoCleanup.equalsIgnoreCase("true"));
         String ivySettingsXML = state.getAttributeValue(IVY_SETTINGS_XML_FILE);
         if (ivySettingsXML != null)
             ivyProjectConfiguration.setIvySettingsXMlFile(new File(ivySettingsXML));
@@ -60,6 +63,7 @@ public class IvyProjectConfigurationProjectComponent extends ProjectComponentAda
 
     public Element getState() {
         Element element = new Element(SETTINGS_ELEMENT_NAME);
+        element.setAttribute(AUTO_CLEANUP, ((Boolean) ivyProjectConfiguration.isAutoCleanup()).toString());
         File ivySettingsXMl = ivyProjectConfiguration.getIvySettingsXMlFile();
         if (ivySettingsXMl != null)
             element.setAttribute(IVY_SETTINGS_XML_FILE, ivySettingsXMl.getAbsolutePath());

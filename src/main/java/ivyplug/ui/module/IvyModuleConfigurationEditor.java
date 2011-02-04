@@ -49,7 +49,7 @@ public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
             new JCheckBox(IvyPlugBundle.message("determine.ivy.descriptor.and.settings.file.automatically"), true);
     private final JLabel ivyXMLLabel = new JLabel(IvyPlugBundle.message("path.to.ivy.xml.file"));
     private final TextFieldWithBrowseButton ivyXML = new TextFieldWithBrowseButton();
-    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("path.to.ivysettings.xml.file"));
+    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("module.path.to.ivysettings.xml.file"));
     private final TextFieldWithBrowseButton ivySettingsXML = new TextFieldWithBrowseButton();
     private final PropertiesCompositePanel propertiesCompositePanel = new PropertiesCompositePanel();
 

@@ -25,8 +25,21 @@ import ivyplug.ui.Configuration;
 public class IvyProjectConfiguration extends Configuration {
 
     private Project project;
+    private boolean autoCleanup = true;
 
     public IvyProjectConfiguration(Project project) {
         this.project = project;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public boolean isAutoCleanup() {
+        return autoCleanup;
+    }
+
+    public void setAutoCleanup(boolean autoCleanup) {
+        this.autoCleanup = autoCleanup;
     }
 }

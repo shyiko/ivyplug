@@ -38,7 +38,8 @@ import java.util.List;
 public class IvyProjectConfigurationEditor implements Configurable {
 
     private final JPanel rootPanel = new JPanel(new GridBagLayout());
-    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("path.to.ivysettings.xml.file"));
+    private final JCheckBox autoCleanupCheckbox = new JCheckBox(IvyPlugBundle.message("auto.cleanup.checkbox"));
+    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("project.path.to.ivysettings.xml.file"));
     private final TextFieldWithBrowseButton ivySettingsXML = new TextFieldWithBrowseButton();
     private final PropertiesCompositePanel propertiesCompositePanel = new PropertiesCompositePanel();
 
@@ -55,6 +56,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
                 BrowseFilesListener.SINGLE_FILE_DESCRIPTOR));
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
                 GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0);
+        rootPanel.add(autoCleanupCheckbox, gc);
         rootPanel.add(ivySettingsXMLLabel, gc);
         rootPanel.add(ivySettingsXML, gc);
         rootPanel.add(propertiesCompositePanel, gc);
@@ -80,7 +82,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
     public boolean isModified() {
         IvyProjectConfiguration configuration = configurationProjectComponent.getConfiguration();
         return !(equals(getPath(configuration.getIvySettingsXMlFile()), ivySettingsXML.getText())) ||
-               propertiesCompositePanel.isModified();
+               propertiesCompositePanel.isModified() || configuration.isAutoCleanup() != autoCleanupCheckbox.isSelected();
     }
 
     public void apply() throws ConfigurationException {
@@ -96,6 +98,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
         }
         configuration.setPropertyFiles(propertyFiles);
         configuration.setCustomProperties(propertiesCompositePanel.getCustomProperties());
+        configuration.setAutoCleanup(autoCleanupCheckbox.isSelected());
         propertiesCompositePanel.setUnModified();
     }
 
@@ -109,6 +112,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
         }
         propertiesCompositePanel.setPropertyFiles(propertyFiles);
         propertiesCompositePanel.setCustomProperties(configuration.getCustomProperties());
+        autoCleanupCheckbox.setSelected(configuration.isAutoCleanup());
     }
 
     public void disposeUIResources() {

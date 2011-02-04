@@ -27,6 +27,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.net.HttpConfigurable;
 import ivyplug.bundles.IvyPlugBundle;
+import ivyplug.dependencies.ProjectDependenciesManager;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
 import org.jetbrains.annotations.NotNull;
@@ -94,6 +95,8 @@ public class ReimportIvyModuleAction extends AnAction {
                         "Failed to resolve " + module.getName());
 */
                     }
+                    ProjectDependenciesManager projectDependenciesManager = project.getComponent(ProjectDependenciesManager.class);
+                    projectDependenciesManager.removeUnusedLibraries();
                 }
                 indicator.setFraction(1.0);
             }

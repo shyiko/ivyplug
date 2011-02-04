@@ -26,6 +26,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.net.HttpConfigurable;
 import ivyplug.bundles.IvyPlugBundle;
+import ivyplug.dependencies.ProjectDependenciesManager;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
@@ -71,6 +72,8 @@ public class ReimportAllIvyModulesAction extends AnAction {
                     if (!failedArtifactsReports.isEmpty())
                         reimportManager.informAboutFailedDependencies(ivyModule.getModule(), failedArtifactsReports);
                 }
+                ProjectDependenciesManager projectDependenciesManager = project.getComponent(ProjectDependenciesManager.class);
+                projectDependenciesManager.removeUnusedLibraries();
                 indicator.setFraction(1.0);
             }
         }.queue();

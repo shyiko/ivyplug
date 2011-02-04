@@ -35,7 +35,7 @@ import java.util.*;
  */
 public class DependencySyncManager extends ModuleComponentAdapter {
 
-    private static final String LIBRARY_PREFIX = "Ivy: ";
+    public static final String LIBRARY_PREFIX = "Ivy: ";
 
     private Application application;
     private Project project;
@@ -64,6 +64,10 @@ public class DependencySyncManager extends ModuleComponentAdapter {
     }
 
     public void commit() {
+        commit(false);
+    }
+
+    public void commit(final boolean removeOldLibraries) {
         final Set<LibraryDependency> libraryDependenciesToMerge = libraryDependencies;
         final Set<ModuleDependency> moduleDependenciesToMerge = moduleDependencies;
         libraryDependencies = new HashSet<LibraryDependency>();
@@ -76,6 +80,8 @@ public class DependencySyncManager extends ModuleComponentAdapter {
                     public void run() {
                         ModifiableRootModel modifiableModuleModel = moduleRootManager.getModifiableModel();
                         try {
+                            if (removeOldLibraries)
+                                removeOldLibraries(modifiableModuleModel);
                             mergeLibraryDependencies(modifiableModuleModel, libraryDependenciesToMerge);
                             mergeModuleDependencies(modifiableModuleModel, moduleDependenciesToMerge);
                             modifiableModuleModel.commit();
@@ -87,6 +93,18 @@ public class DependencySyncManager extends ModuleComponentAdapter {
                 });
             }
         });
+    }
+
+    private void removeOldLibraries(ModifiableRootModel modifiableModuleModel) {
+        for (OrderEntry orderEntry : modifiableModuleModel.getOrderEntries()) {
+            if (orderEntry instanceof LibraryOrderEntry) {
+                LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry) orderEntry;
+                String libraryName = libraryOrderEntry.getLibraryName();
+                if (libraryName != null && libraryName.startsWith(LIBRARY_PREFIX)) {
+                    modifiableModuleModel.removeOrderEntry(libraryOrderEntry);
+                }
+            }
+        }
     }
 
     private void mergeLibraryDependencies(ModifiableRootModel modifiableModuleModel, Set<LibraryDependency> libraryDependenciesToCommit) {

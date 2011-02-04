@@ -21,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.dependencies.DependencySyncManager;
 import ivyplug.dependencies.LibraryDependency;
+import ivyplug.ui.project.IvyProjectConfigurationProjectComponent;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -91,7 +92,9 @@ public class ReimportManager {
 
     public void commitChanges(Module module) {
         DependencySyncManager dependencySyncManager = module.getComponent(DependencySyncManager.class);
-        dependencySyncManager.commit();
+        IvyProjectConfigurationProjectComponent projectConfigurationComponent =
+                module.getProject().getComponent(IvyProjectConfigurationProjectComponent.class);
+        dependencySyncManager.commit(projectConfigurationComponent.getConfiguration().isAutoCleanup());
     }
 
     private String[] toMessage(ArtifactDownloadReport report) {
