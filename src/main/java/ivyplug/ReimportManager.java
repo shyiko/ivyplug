@@ -15,15 +15,14 @@
  */
 package ivyplug;
 
-import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.dependencies.DependencySyncManager;
 import ivyplug.dependencies.LibraryDependency;
+import ivyplug.ui.configuration.project.IvyProjectConfigurationProjectComponent;
 import ivyplug.ui.messages.Message;
 import ivyplug.ui.messages.MessagesProjectComponent;
-import ivyplug.ui.configuration.project.IvyProjectConfigurationProjectComponent;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -32,13 +31,27 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.IvyNode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 31.01.2011
  */
 public class ReimportManager {
+
+    private static ReimportManager instance;
+
+    private ReimportManager() {}
+
+    public static ReimportManager getInstance() {
+        if (instance == null) {
+            instance = new ReimportManager();
+        }
+        return instance;
+    }
 
     public List<IvyModule> removeProjectModulesFromArtifactsReports(Map<String, IvyModule> projectModules,
                                                                      List<ArtifactDownloadReport> artifactDownloadReports) {

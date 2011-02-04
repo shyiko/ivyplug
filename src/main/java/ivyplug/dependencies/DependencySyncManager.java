@@ -27,7 +27,8 @@ import ivyplug.adapters.ModuleComponentAdapter;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>

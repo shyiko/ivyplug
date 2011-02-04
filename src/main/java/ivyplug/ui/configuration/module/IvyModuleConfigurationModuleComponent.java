@@ -22,7 +22,7 @@ import com.intellij.openapi.module.Module;
 import ivyplug.adapters.ModuleComponentAdapter;
 import org.jdom.Element;
 
-import java.io.*;
+import java.io.File;
 import java.util.*;
 
 /**

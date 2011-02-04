@@ -26,8 +26,9 @@ import ivyplug.ui.messages.Message;
 import ivyplug.ui.messages.MessagesProjectComponent;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>

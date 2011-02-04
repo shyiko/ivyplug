@@ -55,7 +55,7 @@ public class ReimportAllIvyModulesAction extends AnAction {
                 indicator.setText(IvyPlugBundle.message("preparing.to.synchronize.ivy.dependencies"));
                 indicator.setFraction(0.0);
                 ModuleManager moduleManager = ModuleManager.getInstance(project);
-                ReimportManager reimportManager = new ReimportManager();
+                ReimportManager reimportManager = ReimportManager.getInstance();
                 MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
                 messagesProjectComponent.closeOurMessageTabs();
                 try {

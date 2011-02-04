@@ -29,7 +29,6 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.util.DefaultMessageLogger;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.HashMap;

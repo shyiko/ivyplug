@@ -39,7 +39,6 @@ import java.io.File;
 )
 public class IvyModuleComponent extends ModuleComponentAdapter implements PersistentStateComponent<Element> {
 
-    // todo: load org on project opening
     private static final String STATE_ORG = "org";
     private IvyModuleConfigurationModuleComponent ivyModuleConfigurationModuleComponent;
     private IvyProjectComponent ivyProjectComponent;

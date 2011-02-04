@@ -15,7 +15,6 @@
  */
 package ivyplug;
 
-import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -66,7 +65,7 @@ public class ReimportIvyModuleAction extends AnAction {
                 if (ivyModuleComponent.isIvyModule()) {
                     Project project = module.getProject();
                     try {
-                        ReimportManager reimportManager = new ReimportManager();
+                        ReimportManager reimportManager = ReimportManager.getInstance();
                         ModuleManager moduleManager = ModuleManager.getInstance(project);
                         Map<String, ReimportManager.IvyModule> ivyModules = getIvyModules(moduleManager);
                         ResolveReport resolveReport = ivyModuleComponent.resolve(indicator);
