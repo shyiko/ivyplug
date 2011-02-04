@@ -21,7 +21,9 @@ import com.intellij.openapi.project.Project;
 import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.dependencies.DependencySyncManager;
 import ivyplug.dependencies.LibraryDependency;
-import ivyplug.ui.project.IvyProjectConfigurationProjectComponent;
+import ivyplug.ui.messages.Message;
+import ivyplug.ui.messages.MessagesProjectComponent;
+import ivyplug.ui.configuration.project.IvyProjectConfigurationProjectComponent;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -56,20 +58,13 @@ public class ReimportManager {
 
     public void informAboutFailedDependencies(Module module, List<ArtifactDownloadReport> failedDependencies) {
         Project project = module.getProject();
-        MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
-        List<Map.Entry<ErrorTreeElementKind, String[]>> messages = new ArrayList<Map.Entry<ErrorTreeElementKind, String[]>>();
+        Message[] messages = new Message[failedDependencies.size()];
+        int i = 0;
         for (ArtifactDownloadReport failedDependency : failedDependencies) {
-            messages.add(new AbstractMap.SimpleEntry<ErrorTreeElementKind, String[]>(ErrorTreeElementKind.ERROR,
-                    toMessage(failedDependency)));
+            messages[i++] = new Message(Message.Type.ERROR, toMessage(failedDependency));
         }
-        messagesProjectComponent.open(module, messages);
-/*
-        StringBuilder sb = new StringBuilder("Following dependencies are missing:\n");
-        for (Object problemMessage : failedDependencies) {
-            sb.append("\t").append(problemMessage).append("\n");
-        }
-        Messages.showErrorDialog(sb.toString(), "Failed to resolve " + module.getName());
-*/
+        MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
+        messagesProjectComponent.showInNewTab(module, messages);
     }
 
     public void addArtifactDependencies(Module module, List<ArtifactDownloadReport> artifactDownloadReports) {

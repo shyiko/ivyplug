@@ -13,50 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.ui.project;
+package ivyplug.ui.configuration.module;
 
 import com.intellij.ide.util.BrowseFilesListener;
-import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationState;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.IconLoader;
 import ivyplug.bundles.IvyPlugBundle;
-import ivyplug.ui.PropertiesCompositePanel;
+import ivyplug.ui.configuration.PropertiesCompositePanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 30.01.2011
  */
-public class IvyProjectConfigurationEditor implements Configurable {
+public class IvyModuleConfigurationEditor implements ModuleConfigurationEditor {
+
+    private static final Icon IVY_ICON = IconLoader.getIcon("/images/ivy.png");
 
     private final JPanel rootPanel = new JPanel(new GridBagLayout());
-    private final JCheckBox autoCleanupCheckbox = new JCheckBox(IvyPlugBundle.message("auto.cleanup.checkbox"));
-    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("project.path.to.ivysettings.xml.file"));
+    private final JCheckBox autoDiscoveryCheckBox  =
+            new JCheckBox(IvyPlugBundle.message("determine.ivy.descriptor.and.settings.file.automatically"), true);
+    private final JLabel ivyXMLLabel = new JLabel(IvyPlugBundle.message("path.to.ivy.xml.file"));
+    private final TextFieldWithBrowseButton ivyXML = new TextFieldWithBrowseButton();
+    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("module.path.to.ivysettings.xml.file"));
     private final TextFieldWithBrowseButton ivySettingsXML = new TextFieldWithBrowseButton();
     private final PropertiesCompositePanel propertiesCompositePanel = new PropertiesCompositePanel();
 
-    private final IvyProjectConfigurationProjectComponent configurationProjectComponent;
+    private final IvyModuleConfigurationModuleComponent configurationModuleComponent;
 
-    public IvyProjectConfigurationEditor(Project project) {
-        configurationProjectComponent = project.getComponent(IvyProjectConfigurationProjectComponent.class);
+    public IvyModuleConfigurationEditor(ModuleConfigurationState state) {
+        Module module = state.getRootModel().getModule();
+        configurationModuleComponent = module.getComponent(IvyModuleConfigurationModuleComponent.class);
     }
 
     public JComponent createComponent() {
+        autoDiscoveryCheckBox.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                onAutoDiscoveryModeChange();
+            }
+        });
+        ivyXML.addActionListener(new BrowseFilesListener(ivyXML.getTextField(),
+                IvyPlugBundle.message("select.ivy.xml.file.location"),
+                IvyPlugBundle.message("selected.file.will.be.used.for.dependencies.resolving"),
+                BrowseFilesListener.SINGLE_FILE_DESCRIPTOR));
         ivySettingsXML.addActionListener(new BrowseFilesListener(ivySettingsXML.getTextField(),
                 IvyPlugBundle.message("select.ivysettings.xml.file.location"),
                 IvyPlugBundle.message("selected.file.will.be.used.for.ivy.configuration"),
                 BrowseFilesListener.SINGLE_FILE_DESCRIPTOR));
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
                 GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0);
-        rootPanel.add(autoCleanupCheckbox, gc);
+        rootPanel.add(autoDiscoveryCheckBox, gc);
+        rootPanel.add(ivyXMLLabel, gc);
+        rootPanel.add(ivyXML, gc);
         rootPanel.add(ivySettingsXMLLabel, gc);
         rootPanel.add(ivySettingsXML, gc);
         rootPanel.add(propertiesCompositePanel, gc);
@@ -66,13 +87,19 @@ public class IvyProjectConfigurationEditor implements Configurable {
         return rootPanel;
     }
 
+    public void saveData() {
+    }
+
+    public void moduleStateChanged() {
+    }
+
     @Nls
     public String getDisplayName() {
-        return IvyPlugBundle.message("project.ivyplug.configuration");
+        return IvyPlugBundle.message("module.ivyplug.configuration");
     }
 
     public Icon getIcon() {
-        return null;
+        return IVY_ICON;
     }
 
     public String getHelpTopic() {
@@ -80,13 +107,16 @@ public class IvyProjectConfigurationEditor implements Configurable {
     }
 
     public boolean isModified() {
-        IvyProjectConfiguration configuration = configurationProjectComponent.getConfiguration();
-        return !(equals(getPath(configuration.getIvySettingsXMlFile()), ivySettingsXML.getText())) ||
-               propertiesCompositePanel.isModified() || configuration.isAutoCleanup() != autoCleanupCheckbox.isSelected();
+        IvyModuleConfiguration configuration = configurationModuleComponent.getConfiguration();
+        return !(configuration.isUseAutoDiscovery() == autoDiscoveryCheckBox.isSelected() &&
+                 equals(getPath(configuration.getIvyXMlFile()), ivyXML.getText()) &&
+                 equals(getPath(configuration.getIvySettingsXMlFile()), ivySettingsXML.getText())) || propertiesCompositePanel.isModified();
     }
 
     public void apply() throws ConfigurationException {
-        IvyProjectConfiguration configuration = configurationProjectComponent.getConfiguration();
+        IvyModuleConfiguration configuration = configurationModuleComponent.getConfiguration();
+        configuration.setUseAutoDiscovery(autoDiscoveryCheckBox.isSelected());
+        configuration.setIvyXMlFile(getFile(ivyXML.getText()));
         configuration.setIvySettingsXMlFile(getFile(ivySettingsXML.getText()));
         List<String> propertyFilesOriginList = propertiesCompositePanel.getPropertyFiles();
         List<File> propertyFiles = new ArrayList<File>(propertyFilesOriginList.size());
@@ -98,24 +128,31 @@ public class IvyProjectConfigurationEditor implements Configurable {
         }
         configuration.setPropertyFiles(propertyFiles);
         configuration.setCustomProperties(propertiesCompositePanel.getCustomProperties());
-        configuration.setAutoCleanup(autoCleanupCheckbox.isSelected());
         propertiesCompositePanel.setUnModified();
     }
 
     public void reset() {
-        IvyProjectConfiguration configuration = configurationProjectComponent.getConfiguration();
-        ivySettingsXML.setText(getPath(configuration.getIvySettingsXMlFile()));
-        List<File> propertyFilesOriginList = configuration.getPropertyFiles();
+        IvyModuleConfiguration state = configurationModuleComponent.getConfiguration();
+        autoDiscoveryCheckBox.setSelected(state.isUseAutoDiscovery());
+        ivyXML.setText(getPath(state.getIvyXMlFile()));
+        ivySettingsXML.setText(getPath(state.getIvySettingsXMlFile()));
+        List<File> propertyFilesOriginList = state.getPropertyFiles();
         List<String> propertyFiles = new ArrayList<String>(propertyFilesOriginList.size());
         for (File file : propertyFilesOriginList) {
             propertyFiles.add(file.getAbsolutePath());
         }
         propertiesCompositePanel.setPropertyFiles(propertyFiles);
-        propertiesCompositePanel.setCustomProperties(configuration.getCustomProperties());
-        autoCleanupCheckbox.setSelected(configuration.isAutoCleanup());
+        propertiesCompositePanel.setCustomProperties(state.getCustomProperties());
+        onAutoDiscoveryModeChange();
     }
 
     public void disposeUIResources() {
+    }
+
+    private void onAutoDiscoveryModeChange() {
+        boolean useAutoDiscoveryMode = autoDiscoveryCheckBox.isSelected();
+        ivyXML.setEnabled(!useAutoDiscoveryMode);
+        ivySettingsXML.setEnabled(!useAutoDiscoveryMode);
     }
 
     private boolean equals(@Nullable String first, @Nullable String second) {
@@ -145,4 +182,5 @@ public class IvyProjectConfigurationEditor implements Configurable {
         }
         return result;
     }
+
 }

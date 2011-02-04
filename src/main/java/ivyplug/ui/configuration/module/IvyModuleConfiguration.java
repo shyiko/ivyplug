@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.ui.module;
+package ivyplug.ui.configuration.module;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import ivyplug.ui.Configuration;
-import ivyplug.ui.project.IvyProjectConfiguration;
-import ivyplug.ui.project.IvyProjectConfigurationProjectComponent;
+import ivyplug.bundles.IvyPlugBundle;
+import ivyplug.ui.configuration.Configuration;
+import ivyplug.ui.configuration.project.IvyProjectConfiguration;
+import ivyplug.ui.configuration.project.IvyProjectConfigurationProjectComponent;
+import ivyplug.ui.messages.Message;
+import ivyplug.ui.messages.MessagesProjectComponent;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -35,12 +38,15 @@ public class IvyModuleConfiguration extends Configuration {
     private static final String DEFAULT_IVY_XML_FILENAME = "ivy.xml";
     private static final String DEFAULT_IVY_SETTINGS_XML_FILENAME = "ivysettings.xml";
 
+    private Module module;
     private IvyProjectConfiguration projectConfiguration;
     private ModuleRootManager moduleRootManager;
+    private MessagesProjectComponent messagesProjectComponent;
     private boolean useAutoDiscovery = true;
     private File ivyXMlFile;
 
     public IvyModuleConfiguration(Module module) {
+        this.module = module;
         moduleRootManager = ModuleRootManager.getInstance(module);
         IvyProjectConfigurationProjectComponent configurationProjectComponent =
                 module.getProject().getComponent(IvyProjectConfigurationProjectComponent.class);
@@ -84,6 +90,13 @@ public class IvyModuleConfiguration extends Configuration {
         result.put("basedir", ivyXMlFile.getParent());
         result.putAll(super.getResolvedProperties());
         return result;
+    }
+
+    @Override
+    protected void warn(String message) {
+        if (messagesProjectComponent == null)
+            messagesProjectComponent = module.getProject().getComponent(MessagesProjectComponent.class);
+        messagesProjectComponent.addToTab(IvyPlugBundle.message("general.message.tab"), new Message(Message.Type.WARNING, message));
     }
 
     @Nullable

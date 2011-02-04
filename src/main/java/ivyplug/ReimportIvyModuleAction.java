@@ -28,6 +28,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.net.HttpConfigurable;
 import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.dependencies.ProjectDependenciesManager;
+import ivyplug.ui.messages.Message;
+import ivyplug.ui.messages.MessagesProjectComponent;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
 import org.jetbrains.annotations.NotNull;
@@ -63,8 +65,6 @@ public class ReimportIvyModuleAction extends AnAction {
                 IvyModuleComponent ivyModuleComponent = module.getComponent(IvyModuleComponent.class);
                 if (ivyModuleComponent.isIvyModule()) {
                     Project project = module.getProject();
-                    MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
-                    messagesProjectComponent.close(module);
                     try {
                         ReimportManager reimportManager = new ReimportManager();
                         ModuleManager moduleManager = ModuleManager.getInstance(project);
@@ -85,18 +85,13 @@ public class ReimportIvyModuleAction extends AnAction {
                         reimportManager.commitChanges(ivyModule.getModule());
                         if (!failedArtifactsReports.isEmpty())
                             reimportManager.informAboutFailedDependencies(ivyModule.getModule(), failedArtifactsReports);
+                        ProjectDependenciesManager projectDependenciesManager = project.getComponent(ProjectDependenciesManager.class);
+                        projectDependenciesManager.removeUnusedLibraries();
                     } catch (IvyException ex) {
-                        messagesProjectComponent.open(module, ErrorTreeElementKind.ERROR, new String[] {
-                                ex.getMessage(),
-                                IvyPlugBundle.message("ivyexception.reason", ex.getCause().getMessage())
-                        });
-/*
-                Messages.showErrorDialog(ex.getMessage() + "\n" + "Reason: " + ex.getCause().getMessage(),
-                        "Failed to resolve " + module.getName());
-*/
+                        MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
+                        messagesProjectComponent.show(module, new Message(Message.Type.ERROR, ex.getMessage(),
+                                                      IvyPlugBundle.message("ivyexception.reason", ex.getCause().getMessage())));
                     }
-                    ProjectDependenciesManager projectDependenciesManager = project.getComponent(ProjectDependenciesManager.class);
-                    projectDependenciesManager.removeUnusedLibraries();
                 }
                 indicator.setFraction(1.0);
             }

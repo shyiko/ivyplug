@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.ui;
+package ivyplug.ui.messages;
 
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.ExporterToTextFile;

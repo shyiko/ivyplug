@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.ui;
+package ivyplug.ui.configuration;
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
@@ -62,7 +62,6 @@ public class PropertyFilesPanel extends JPanel {
                 }
             }
         });
-
         removeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 DefaultListModel model = (DefaultListModel) propertyFilesList.getModel();
@@ -73,7 +72,6 @@ public class PropertyFilesPanel extends JPanel {
                 }
             }
         });
-
         moveUpButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 DefaultListModel model = (DefaultListModel) propertyFilesList.getModel();
@@ -85,7 +83,6 @@ public class PropertyFilesPanel extends JPanel {
                 }
             }
         });
-
         moveDownButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 DefaultListModel model = (DefaultListModel) propertyFilesList.getModel();
@@ -98,7 +95,6 @@ public class PropertyFilesPanel extends JPanel {
                 }
             }
         });
-
         propertyFilesList.getModel().addListDataListener(new ListDataListener() {
 
             public void intervalAdded(ListDataEvent e) { setModified(); }

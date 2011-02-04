@@ -13,30 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.ui.module;
+package ivyplug.ui.configuration.project;
 
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.module.Module;
-import ivyplug.adapters.ModuleComponentAdapter;
+import com.intellij.openapi.project.Project;
+import ivyplug.adapters.ProjectComponentAdapter;
 import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.File;
 import java.util.*;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 30.01.2011
  */
-@State(name = "IvyModuleConfigurationModuleComponent",
-       storages = {@Storage(id = "other", file = "$MODULE_FILE$")}
+@State(name = "IvyProjectConfigurationProjectComponent",
+       storages = {@Storage(id = "other", file = "$PROJECT_FILE$")}
 )
-public class IvyModuleConfigurationModuleComponent extends ModuleComponentAdapter implements PersistentStateComponent<Element> {
+public class IvyProjectConfigurationProjectComponent extends ProjectComponentAdapter implements PersistentStateComponent<Element> {
 
-    private static final String USE_AUTO_DISCOVERY = "useAutoDiscovery";
-    private static final String IVY_XML_FILE = "ivyXMLFile";
+    private static final String AUTO_CLEANUP = "autoCleanup";
     private static final String IVY_SETTINGS_XML_FILE = "ivySettingsXMLFile";
     private static final String SETTINGS_ELEMENT_NAME = "ivyPlugSettings";
     private static final String PROPERTY_FILES_ELEMENT_NAME = "propertyFiles";
@@ -45,44 +43,37 @@ public class IvyModuleConfigurationModuleComponent extends ModuleComponentAdapte
     private static final String CUSTOM_PROPERTIES_ATTRIBUTE_NAME = "attribute";
     private static final String CUSTOM_PROPERTIES_ATTRIBUTE_KEY_NAME = "name";
 
-    private final IvyModuleConfiguration ivyModuleConfiguration;
+    private final IvyProjectConfiguration ivyProjectConfiguration;
 
-    public IvyModuleConfigurationModuleComponent(Module module) {
-        super(module);
-        ivyModuleConfiguration = new IvyModuleConfiguration(module);
+    public IvyProjectConfigurationProjectComponent(Project project) {
+        super(project);
+        ivyProjectConfiguration = new IvyProjectConfiguration(project);
     }
 
     public void loadState(Element state) {
-        String useAutoDiscovery = state.getAttributeValue(USE_AUTO_DISCOVERY);
-        ivyModuleConfiguration.setUseAutoDiscovery(useAutoDiscovery == null ||
-                                          useAutoDiscovery.equalsIgnoreCase("true"));
-        String ivyXML = state.getAttributeValue(IVY_XML_FILE);
-        if (ivyXML != null)
-            ivyModuleConfiguration.setIvyXMlFile(new File(ivyXML));
+        String autoCleanup = state.getAttributeValue(AUTO_CLEANUP);
+        ivyProjectConfiguration.setAutoCleanup(autoCleanup == null ||
+                                               autoCleanup.equalsIgnoreCase("true"));
         String ivySettingsXML = state.getAttributeValue(IVY_SETTINGS_XML_FILE);
         if (ivySettingsXML != null)
-            ivyModuleConfiguration.setIvySettingsXMlFile(new File(ivySettingsXML));
+            ivyProjectConfiguration.setIvySettingsXMlFile(new File(ivySettingsXML));
         loadPropertyFiles(state);
         loadCustomProperties(state);
     }
 
     public Element getState() {
-        Boolean useAutoDiscovery = ivyModuleConfiguration.isUseAutoDiscovery();
-        File ivyXMl = ivyModuleConfiguration.getIvyXMlFile();
-        File ivySettingsXMl = ivyModuleConfiguration.getIvySettingsXMlFile();
         Element element = new Element(SETTINGS_ELEMENT_NAME);
-        if (ivyXMl != null)
-            element.setAttribute(IVY_XML_FILE, ivyXMl.getAbsolutePath());
+        element.setAttribute(AUTO_CLEANUP, ((Boolean) ivyProjectConfiguration.isAutoCleanup()).toString());
+        File ivySettingsXMl = ivyProjectConfiguration.getIvySettingsXMlFile();
         if (ivySettingsXMl != null)
             element.setAttribute(IVY_SETTINGS_XML_FILE, ivySettingsXMl.getAbsolutePath());
-        element.setAttribute(USE_AUTO_DISCOVERY, useAutoDiscovery.toString());
         element.addContent(getPropertyFiles());
         element.addContent(getCustomProperties());
         return element;
     }
 
-    public IvyModuleConfiguration getConfiguration() {
-        return ivyModuleConfiguration;
+    public IvyProjectConfiguration getConfiguration() {
+        return ivyProjectConfiguration;
     }
 
     private void loadPropertyFiles(Element state) {
@@ -98,7 +89,7 @@ public class IvyModuleConfigurationModuleComponent extends ModuleComponentAdapte
                 propertyFiles.add(new File(attribute.getTextTrim()));
             }
         }
-        ivyModuleConfiguration.setPropertyFiles(propertyFiles);
+        ivyProjectConfiguration.setPropertyFiles(propertyFiles);
     }
 
     private void loadCustomProperties(Element state) {
@@ -115,12 +106,12 @@ public class IvyModuleConfigurationModuleComponent extends ModuleComponentAdapte
                         attribute.getTextTrim());
             }
         }
-        ivyModuleConfiguration.setCustomProperties(customProperties);
+        ivyProjectConfiguration.setCustomProperties(customProperties);
     }
 
     private Element getPropertyFiles() {
         Element result = new Element(PROPERTY_FILES_ELEMENT_NAME);
-        for (File file : ivyModuleConfiguration.getPropertyFiles()) {
+        for (File file : ivyProjectConfiguration.getPropertyFiles()) {
             Element attribute = new Element(PROPERTY_FILES_ATTRIBUTE_NAME);
             attribute.setText(file.getAbsolutePath());
             result.addContent(attribute);
@@ -130,7 +121,7 @@ public class IvyModuleConfigurationModuleComponent extends ModuleComponentAdapte
 
     private Element getCustomProperties() {
         Element result = new Element(CUSTOM_PROPERTIES_ELEMENT_NAME);
-        for (Map.Entry<String, String> entry: ivyModuleConfiguration.getCustomProperties().entrySet()){
+        for (Map.Entry<String, String> entry: ivyProjectConfiguration.getCustomProperties().entrySet()){
             Element attribute = new Element(CUSTOM_PROPERTIES_ATTRIBUTE_NAME);
             attribute.setAttribute(CUSTOM_PROPERTIES_ATTRIBUTE_KEY_NAME, entry.getKey());
             attribute.setText(entry.getValue());

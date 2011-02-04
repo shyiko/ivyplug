@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.ui.project;
+package ivyplug.ui.configuration.project;
 
 import com.intellij.openapi.project.Project;
-import ivyplug.ui.Configuration;
+import ivyplug.bundles.IvyPlugBundle;
+import ivyplug.ui.configuration.Configuration;
+import ivyplug.ui.messages.Message;
+import ivyplug.ui.messages.MessagesProjectComponent;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
@@ -25,6 +28,7 @@ import ivyplug.ui.Configuration;
 public class IvyProjectConfiguration extends Configuration {
 
     private Project project;
+    private MessagesProjectComponent messagesProjectComponent;
     private boolean autoCleanup = true;
 
     public IvyProjectConfiguration(Project project) {
@@ -41,5 +45,12 @@ public class IvyProjectConfiguration extends Configuration {
 
     public void setAutoCleanup(boolean autoCleanup) {
         this.autoCleanup = autoCleanup;
+    }
+
+    @Override
+    protected void warn(String message) {
+        if (messagesProjectComponent == null)
+            messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
+        messagesProjectComponent.addToTab(IvyPlugBundle.message("general.message.tab"), new Message(Message.Type.WARNING, message));
     }
 }

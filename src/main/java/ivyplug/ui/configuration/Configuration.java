@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.ui;
+package ivyplug.ui.configuration;
 
+import ivyplug.bundles.IvyPlugBundle;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -70,13 +71,15 @@ public abstract class Configuration {
                     } finally {
                         reader.close();
                     }
-                } catch (FileNotFoundException e) {
-                    // todo: warn
                 } catch (IOException e) {
-                    // todo: warn
+                    warn(IvyPlugBundle.message("failed.to.read.file", file.getAbsolutePath()));
                 }
+            } else {
+                warn(IvyPlugBundle.message("failed.to.locate.file", file.getAbsolutePath()));
             }
         }
         return result;
     }
+
+    protected abstract void warn(String message);
 }

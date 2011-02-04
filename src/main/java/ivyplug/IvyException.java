@@ -15,13 +15,26 @@
  */
 package ivyplug;
 
+import com.intellij.openapi.module.Module;
+
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 28.01.2011
  */
 public class IvyException extends Exception {
 
-    public IvyException(String s, Throwable throwable) {
-        super(s, throwable);
+    private Module module;
+
+    public IvyException(String message, Throwable throwable) {
+        this(null, message, throwable);
+    }
+
+    public IvyException(Module module, String message, Throwable throwable) {
+        super(message, throwable);
+        this.module = module;
+    }
+
+    public Module getModule() {
+        return module;
     }
 }
