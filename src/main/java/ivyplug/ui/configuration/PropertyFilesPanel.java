@@ -18,10 +18,9 @@ package ivyplug.ui.configuration;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileTypeDescriptor;
+import ivyplug.ideaapi.FileTypeDescriptor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.components.JBList;
 import ivyplug.bundles.IvyPlugBundle;
 
 import javax.swing.*;
@@ -41,7 +40,8 @@ import java.util.List;
  */
 public class PropertyFilesPanel extends JPanel {
 
-    private final JBList propertyFilesList = new JBList(new DefaultListModel());
+    // JBList is not present in IDEA <10, so using JList instead
+    private final JList propertyFilesList = new JList(new DefaultListModel());
     private final JButton addButton = new JButton(IvyPlugBundle.message("button.add"));
     private final JButton removeButton = new JButton(IvyPlugBundle.message("button.remove"));
     private final JButton moveUpButton = new JButton(IvyPlugBundle.message("button.move.up"));

@@ -43,16 +43,16 @@
         </group>
         <action id="ReimportAllIvyModulesAction" class="ivyplug.ReimportAllIvyModulesAction"
                 text="Reimport All Ivy Modules">
-            <add-to-group group-id="IvyPlugReimportGroup"/>
+            <add-to-group anchor="last" group-id="IvyPlugReimportGroup"/>
         </action>
         <action id="ReimportIvyDescriptor" class="ivyplug.ReimportIvyModuleAction"
                 text="Reimport Ivy Module">
-            <add-to-group group-id="IvyPlugReimportGroup"/>
+            <add-to-group anchor="last" group-id="IvyPlugReimportGroup"/>
         </action>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectConfigurable instance="ivyplug.ui.configuration.project.IvyProjectConfigurationEditor"/>
+        <projectConfigurable implementation="ivyplug.ui.configuration.project.IvyProjectConfigurationEditor"/>
         <moduleConfigurationEditorProvider implementation="ivyplug.ui.configuration.module.IvyModuleConfigurationEditorProvider"/>
     </extensions>
 </idea-plugin>
