@@ -18,6 +18,7 @@ package ivyplug;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -42,6 +43,13 @@ import java.util.Map;
  * @since 31.01.2011
  */
 public class ReimportAllIvyModulesAction extends AnAction {
+
+    @Override
+    public void update(AnActionEvent e) {
+        Presentation presentation = e.getPresentation();
+        Project project = e.getData(LangDataKeys.PROJECT);
+        presentation.setVisible(project != null);
+    }
 
     public void actionPerformed(AnActionEvent e) {
         final Project project = e.getData(LangDataKeys.PROJECT);

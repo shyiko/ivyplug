@@ -46,9 +46,10 @@ public class ReimportIvyModuleAction extends AnAction {
     public void update(AnActionEvent e) {
         Presentation presentation = e.getPresentation();
         Module module = e.getData(LangDataKeys.MODULE);
-        String name = module == null ? IvyPlugBundle.message("reimport.ivy.module") :
-                                       IvyPlugBundle.message("reimport.ivy.module.parametrized", module.getName());
-        presentation.setText(name);
+        presentation.setVisible(module != null);
+        if (presentation.isVisible()) {
+            presentation.setText(IvyPlugBundle.message("reimport.ivy.module.parametrized", module.getName()));
+        }
     }
 
     public void actionPerformed(AnActionEvent e) {
