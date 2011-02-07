@@ -25,12 +25,13 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.MessageView;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import ivyplug.prevsupport.factories.JTreeFactory;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -50,7 +51,7 @@ public class MessagesPanel extends JPanel implements DataProvider, CopyProvider 
     private ErrorViewStructure errorViewStructure;
     private ErrorViewTreeBuilder errorViewTreeBuilder;
     private ExporterToTextFile exporterToTextFile;
-    protected Tree messageTree;
+    protected JTree messageTree;
 
     public MessagesPanel(Project project) {
         this.project = project;
@@ -61,12 +62,7 @@ public class MessagesPanel extends JPanel implements DataProvider, CopyProvider 
         DefaultMutableTreeNode root = new DefaultMutableTreeNode();
         root.setUserObject(errorViewStructure.createDescriptor(errorViewStructure.getRootElement(), null));
         final DefaultTreeModel treeModel = new DefaultTreeModel(root);
-        messageTree = new Tree(treeModel) {
-            public void setRowHeight(int i) {
-                super.setRowHeight(0);
-                // this is needed in order to make UI calculate the height for each particular row
-            }
-        };
+        messageTree = JTreeFactory.createJTree(treeModel);
         errorViewTreeBuilder = new ErrorViewTreeBuilder(messageTree, treeModel, errorViewStructure);
         exporterToTextFile = new ErrorViewTextExporter(errorViewStructure);
 
@@ -112,16 +108,16 @@ public class MessagesPanel extends JPanel implements DataProvider, CopyProvider 
     }
 
     public Object getData(String dataId) {
-        if (PlatformDataKeys.COPY_PROVIDER.is(dataId)) {
+        if (PlatformDataKeys.COPY_PROVIDER.getName().equals(dataId)) {
             return this;
-        } else if (PlatformDataKeys.EXPORTER_TO_TEXT_FILE.is(dataId)) {
+        } else if (PlatformDataKeys.EXPORTER_TO_TEXT_FILE.getName().equals(dataId)) {
             return exporterToTextFile;
         }
         return null;
     }
 
     public void close() {
-        MessageView messageView = MessageView.SERVICE.getInstance(project);
+        MessageView messageView = ServiceManager.getService(project, MessageView.class);
         Content content = messageView.getContentManager().getContent(this);
         if (content != null) {
             messageView.getContentManager().removeContent(content, true);

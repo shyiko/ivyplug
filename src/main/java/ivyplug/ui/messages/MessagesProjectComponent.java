@@ -20,6 +20,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
@@ -42,7 +43,7 @@ public class MessagesProjectComponent extends ProjectComponentAdapter {
 
     public MessagesProjectComponent(Project project) {
         super(project);
-        messageView = MessageView.SERVICE.getInstance(project);
+        messageView = ServiceManager.getService(project, MessageView.class);
         toolWindowManager = ToolWindowManager.getInstance(project);
         contentFactory = ContentFactory.SERVICE.getInstance();
     }

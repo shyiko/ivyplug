@@ -15,11 +15,11 @@
  */
 package ivyplug.ui.configuration;
 
-import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.ListTableModel;
 import ivyplug.bundles.IvyPlugBundle;
+import ivyplug.prevsupport.factories.JScrollPaneFactory;
+import ivyplug.prevsupport.ListTableModel;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -106,7 +106,7 @@ public class PropertiesPanel extends JPanel {
         tableComponent.setBorder(BorderFactory.createEtchedBorder());
         JPanel propertyFilesWrapperPanel = new JPanel(new BorderLayout());
         propertyFilesWrapperPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
-        propertyFilesWrapperPanel.add(ScrollPaneFactory.createScrollPane(tableComponent), BorderLayout.CENTER);
+        propertyFilesWrapperPanel.add(JScrollPaneFactory.createJScrollPane(tableComponent), BorderLayout.CENTER);
         add(propertyFilesWrapperPanel, BorderLayout.CENTER);
         JPanel controlPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,

@@ -18,9 +18,8 @@ package ivyplug.ui.configuration;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
-import ivyplug.ideaapi.FileTypeDescriptor;
+import ivyplug.prevsupport.FileTypeDescriptor;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.ScrollPaneFactory;
 import ivyplug.bundles.IvyPlugBundle;
 
 import javax.swing.*;
@@ -34,14 +33,16 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
+import ivyplug.prevsupport.factories.JListFactory;
+import ivyplug.prevsupport.factories.JScrollPaneFactory;
+
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
  * @since 02.02.2011
  */
 public class PropertyFilesPanel extends JPanel {
 
-    // JBList is not present in IDEA <10, so using JList instead
-    private final JList propertyFilesList = new JList(new DefaultListModel());
+    private final JList propertyFilesList = JListFactory.createJList(new DefaultListModel());
     private final JButton addButton = new JButton(IvyPlugBundle.message("button.add"));
     private final JButton removeButton = new JButton(IvyPlugBundle.message("button.remove"));
     private final JButton moveUpButton = new JButton(IvyPlugBundle.message("button.move.up"));
@@ -108,7 +109,7 @@ public class PropertyFilesPanel extends JPanel {
         propertyFilesList.setBorder(BorderFactory.createEtchedBorder());
         JPanel propertyFilesWrapperPanel = new JPanel(new BorderLayout());
         propertyFilesWrapperPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
-        propertyFilesWrapperPanel.add(ScrollPaneFactory.createScrollPane(propertyFilesList), BorderLayout.CENTER);
+        propertyFilesWrapperPanel.add(JScrollPaneFactory.createJScrollPane(propertyFilesList), BorderLayout.CENTER);
         add(propertyFilesWrapperPanel, BorderLayout.CENTER);
         JPanel controlPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
