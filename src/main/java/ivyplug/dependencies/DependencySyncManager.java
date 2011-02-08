@@ -118,6 +118,7 @@ public class DependencySyncManager extends ModuleComponentAdapter {
                 library = projectLibraryTable.createLibrary(libraryName);
             }
             if (!moduleLibraries.contains(libraryName)) {
+                moduleLibraries.add(libraryName);
                 modifiableModuleModel.addLibraryEntry(library);
             }
             mergeLibraryDependency(library, libraryDependency);
