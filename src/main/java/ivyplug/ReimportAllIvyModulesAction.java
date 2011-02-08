@@ -24,6 +24,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.util.net.HttpConfigurable;
 import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.dependencies.ProjectDependenciesManager;
@@ -34,6 +35,7 @@ import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +70,15 @@ public class ReimportAllIvyModulesAction extends AnAction {
                 messagesProjectComponent.closeOurMessageTabs();
                 try {
                     Map<String, ReimportManager.IvyModule> ivyModules = getIvyModules(moduleManager, indicator);
+                    if (ivyModules.size() == 0) {
+                        SwingUtilities.invokeLater(new Runnable() {
+
+                            public void run() {
+                                Messages.showInfoMessage(IvyPlugBundle.message("no.ivy.modules.found.message"),
+                                        IvyPlugBundle.message("no.ivy.modules.found.title"));
+                            }
+                        });
+                    }
                     for (ReimportManager.IvyModule ivyModule : ivyModules.values()) {
                         List<ArtifactDownloadReport> failedArtifactsReports = ivyModule.getFailedArtifactsReports();
                         List<ArtifactDownloadReport> successfulArtifactsReports = ivyModule.getSuccessfulArtifactsReports();

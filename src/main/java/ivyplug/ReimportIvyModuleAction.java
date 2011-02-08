@@ -48,6 +48,8 @@ public class ReimportIvyModuleAction extends AnAction {
         Module module = e.getData(LangDataKeys.MODULE);
         presentation.setVisible(module != null);
         if (presentation.isVisible()) {
+            IvyModuleComponent ivyModuleComponent = module.getComponent(IvyModuleComponent.class);
+            presentation.setEnabled(ivyModuleComponent.isIvyModule());
             presentation.setText(IvyPlugBundle.message("reimport.ivy.module.parametrized", module.getName()));
         }
     }
