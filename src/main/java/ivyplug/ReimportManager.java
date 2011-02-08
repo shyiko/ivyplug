@@ -77,7 +77,7 @@ public class ReimportManager {
             messages[i++] = new Message(Message.Type.ERROR, toMessage(failedDependency));
         }
         MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
-        messagesProjectComponent.showInNewTab(module, messages);
+        messagesProjectComponent.show(module, messages);
     }
 
     public void addArtifactDependencies(Module module, List<ArtifactDownloadReport> artifactDownloadReports) {
