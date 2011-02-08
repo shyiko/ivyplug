@@ -10,6 +10,9 @@
 
     <project-components>
         <component>
+            <implementation-class>ivyplug.IvyPlugProjectComponent</implementation-class>
+        </component>
+        <component>
             <implementation-class>ivyplug.IvyProjectComponent</implementation-class>
         </component>
         <component>

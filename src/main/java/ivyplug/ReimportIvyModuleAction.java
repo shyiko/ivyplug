@@ -48,8 +48,12 @@ public class ReimportIvyModuleAction extends AnAction {
         Module module = e.getData(LangDataKeys.MODULE);
         presentation.setVisible(module != null);
         if (presentation.isVisible()) {
-            IvyModuleComponent ivyModuleComponent = module.getComponent(IvyModuleComponent.class);
-            presentation.setEnabled(ivyModuleComponent.isIvyModule());
+            IvyPlugProjectComponent ivyPlugProjectComponent = module.getProject().getComponent(IvyPlugProjectComponent.class);
+            presentation.setEnabled(!ivyPlugProjectComponent.isSyncInProgress());
+            if (presentation.isEnabled()) {
+                IvyModuleComponent ivyModuleComponent = module.getComponent(IvyModuleComponent.class);
+                presentation.setEnabled(ivyModuleComponent.isIvyModule());
+            }
             presentation.setText(IvyPlugBundle.message("reimport.ivy.module.parametrized", module.getName()));
         }
     }
@@ -60,42 +64,48 @@ public class ReimportIvyModuleAction extends AnAction {
             return;
         HttpConfigurable httpConfigurable = HttpConfigurable.getInstance();
         httpConfigurable.setAuthenticator();
+        final Project project = module.getProject();
+        final IvyPlugProjectComponent ivyPlugProjectComponent = project.getComponent(IvyPlugProjectComponent.class);
+        ivyPlugProjectComponent.setSyncInProgress(true);
         new Task.Backgroundable(module.getProject(), IvyPlugBundle.message("synchronizing.data"), false) {
             public void run(@NotNull ProgressIndicator indicator) {
-                indicator.setText(IvyPlugBundle.message("preparing.to.synchronize.module.ivy.dependencies", module.getName()));
-                indicator.setFraction(0.0);
-                IvyModuleComponent ivyModuleComponent = module.getComponent(IvyModuleComponent.class);
-                if (ivyModuleComponent.isIvyModule()) {
-                    Project project = module.getProject();
-                    try {
-                        ReimportManager reimportManager = ReimportManager.getInstance();
-                        ModuleManager moduleManager = ModuleManager.getInstance(project);
-                        Map<String, ReimportManager.IvyModule> ivyModules = getIvyModules(moduleManager);
-                        ResolveReport resolveReport = ivyModuleComponent.resolve(indicator);
-                        ReimportManager.IvyModule ivyModule = new ReimportManager.IvyModule(module, resolveReport);
-                        List<ArtifactDownloadReport> failedArtifactsReports = ivyModule.getFailedArtifactsReports();
-                        List<ArtifactDownloadReport> successfulArtifactsReports = ivyModule.getSuccessfulArtifactsReports();
-                        // remove project modules from ivy reports and add them as module dependencies
-                        List<ReimportManager.IvyModule> projectModules = reimportManager.removeProjectModulesFromArtifactsReports(ivyModules, failedArtifactsReports);
-                        projectModules.addAll(reimportManager.removeProjectModulesFromArtifactsReports(ivyModules, successfulArtifactsReports));
-                        for (ReimportManager.IvyModule projectModule : projectModules) {
-                            reimportManager.addModuleDependencies(ivyModule.getModule(), projectModule.getModule());
+                try {
+                    indicator.setText(IvyPlugBundle.message("preparing.to.synchronize.module.ivy.dependencies", module.getName()));
+                    indicator.setFraction(0.0);
+                    IvyModuleComponent ivyModuleComponent = module.getComponent(IvyModuleComponent.class);
+                    if (ivyModuleComponent.isIvyModule()) {
+                        try {
+                            ReimportManager reimportManager = ReimportManager.getInstance();
+                            ModuleManager moduleManager = ModuleManager.getInstance(project);
+                            Map<String, ReimportManager.IvyModule> ivyModules = getIvyModules(moduleManager);
+                            ResolveReport resolveReport = ivyModuleComponent.resolve(indicator);
+                            ReimportManager.IvyModule ivyModule = new ReimportManager.IvyModule(module, resolveReport);
+                            List<ArtifactDownloadReport> failedArtifactsReports = ivyModule.getFailedArtifactsReports();
+                            List<ArtifactDownloadReport> successfulArtifactsReports = ivyModule.getSuccessfulArtifactsReports();
+                            // remove project modules from ivy reports and add them as module dependencies
+                            List<ReimportManager.IvyModule> projectModules = reimportManager.removeProjectModulesFromArtifactsReports(ivyModules, failedArtifactsReports);
+                            projectModules.addAll(reimportManager.removeProjectModulesFromArtifactsReports(ivyModules, successfulArtifactsReports));
+                            for (ReimportManager.IvyModule projectModule : projectModules) {
+                                reimportManager.addModuleDependencies(ivyModule.getModule(), projectModule.getModule());
+                            }
+                            // add artifact dependencies
+                            reimportManager.addArtifactDependencies(ivyModule.getModule(), successfulArtifactsReports);
+                            // commit all changes
+                            reimportManager.commitChanges(ivyModule.getModule());
+                            if (!failedArtifactsReports.isEmpty())
+                                reimportManager.informAboutFailedDependencies(ivyModule.getModule(), failedArtifactsReports);
+                            ProjectDependenciesManager projectDependenciesManager = project.getComponent(ProjectDependenciesManager.class);
+                            projectDependenciesManager.removeUnusedLibraries();
+                        } catch (IvyException ex) {
+                            MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
+                            messagesProjectComponent.show(module, new Message(Message.Type.ERROR, ex.getMessage(),
+                                    IvyPlugBundle.message("ivyexception.reason", ex.getCause().getMessage())));
                         }
-                        // add artifact dependencies
-                        reimportManager.addArtifactDependencies(ivyModule.getModule(), successfulArtifactsReports);
-                        // commit all changes
-                        reimportManager.commitChanges(ivyModule.getModule());
-                        if (!failedArtifactsReports.isEmpty())
-                            reimportManager.informAboutFailedDependencies(ivyModule.getModule(), failedArtifactsReports);
-                        ProjectDependenciesManager projectDependenciesManager = project.getComponent(ProjectDependenciesManager.class);
-                        projectDependenciesManager.removeUnusedLibraries();
-                    } catch (IvyException ex) {
-                        MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
-                        messagesProjectComponent.show(module, new Message(Message.Type.ERROR, ex.getMessage(),
-                                                      IvyPlugBundle.message("ivyexception.reason", ex.getCause().getMessage())));
                     }
+                    indicator.setFraction(1.0);
+                } finally {
+                    ivyPlugProjectComponent.setSyncInProgress(false);
                 }
-                indicator.setFraction(1.0);
             }
         }.queue();
     }
