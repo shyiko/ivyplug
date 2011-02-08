@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.List;
 
 /**
- * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
+ * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 02.02.2011
  */
 public class PropertiesPanel extends JPanel {

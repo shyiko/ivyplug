@@ -19,7 +19,7 @@ import com.intellij.openapi.project.Project;
 import ivyplug.adapters.ProjectComponentAdapter;
 
 /**
- * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
+ * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 08.02.2011
  */
 public class IvyPlugProjectComponent extends ProjectComponentAdapter {

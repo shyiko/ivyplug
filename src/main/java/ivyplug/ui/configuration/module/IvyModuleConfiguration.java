@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
+ * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 03.02.2011
  */
 public class IvyModuleConfiguration extends Configuration {

@@ -26,7 +26,7 @@ import java.util.Arrays;
  * A copy of com.intellij.ideaapi.fileChooser.FileTypeDescriptor, used to make plugin
  * compatible with IDEA <10.
  *
- * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
+ * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 07.02.2011
  */
 public class FileTypeDescriptor extends FileChooserDescriptor {

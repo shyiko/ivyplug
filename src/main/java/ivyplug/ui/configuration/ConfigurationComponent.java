@@ -24,7 +24,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
+ * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 04.02.2011
  */
 public abstract class ConfigurationComponent implements PersistentStateComponent<Element>, BaseComponent {

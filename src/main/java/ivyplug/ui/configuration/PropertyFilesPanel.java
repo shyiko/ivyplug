@@ -37,7 +37,7 @@ import ivyplug.prevsupport.factories.JListFactory;
 import ivyplug.prevsupport.factories.JScrollPaneFactory;
 
 /**
- * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
+ * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 02.02.2011
  */
 public class PropertyFilesPanel extends JPanel {

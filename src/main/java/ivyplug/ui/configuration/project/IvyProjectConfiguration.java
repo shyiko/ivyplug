@@ -22,7 +22,7 @@ import ivyplug.ui.messages.Message;
 import ivyplug.ui.messages.MessagesProjectComponent;
 
 /**
- * @author <a href="mailto:stanley.shyiko@gmail.com">sshyiko</a>
+ * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 03.02.2011
  */
 public class IvyProjectConfiguration extends Configuration {
