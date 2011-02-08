@@ -88,6 +88,8 @@ public class IvyModuleConfiguration extends Configuration {
 
     public Map<String, String> getResolvedProperties() {
         Map<String, String> result = new HashMap<String, String>(projectConfiguration.getResolvedProperties());
+        result.put("module.name", module.getName());
+        result.put("module.path", ivyXMlFile.getParent());
         result.put("basedir", ivyXMlFile.getParent());
         result.putAll(super.getResolvedProperties());
         return result;
