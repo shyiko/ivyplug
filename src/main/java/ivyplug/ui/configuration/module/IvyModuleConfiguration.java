@@ -81,7 +81,7 @@ public class IvyModuleConfiguration extends Configuration {
         }
         File result = super.getIvySettingsXMlFile();
         if (result == null) {
-            setIvySettingsXMlFile(projectConfiguration.getIvySettingsXMlFile());
+            result = projectConfiguration.getIvySettingsXMlFile();
         }
         return result;
     }
