@@ -86,9 +86,9 @@ public class DependencySyncManager extends ModuleComponentAdapter {
                             mergeLibraryDependencies(modifiableModuleModel, libraryDependenciesToMerge);
                             mergeModuleDependencies(modifiableModuleModel, moduleDependenciesToMerge);
                             modifiableModuleModel.commit();
-                        } finally {
-                            if (modifiableModuleModel.isWritable())
-                                modifiableModuleModel.dispose();
+                        } catch (RuntimeException ex) {
+                            modifiableModuleModel.dispose();
+                            throw ex;
                         }
                     }
                 });
