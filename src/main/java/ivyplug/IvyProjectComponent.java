@@ -20,6 +20,7 @@ import com.intellij.openapi.project.Project;
 import ivyplug.adapters.ProjectComponentAdapter;
 import ivyplug.bundles.IvyPlugBundle;
 import ivyplug.facade.DefaultEventManager;
+import ivyplug.facade.DefaultIvyVariableContainer;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.event.IvyEvent;
 import org.apache.ivy.core.event.IvyListener;
@@ -69,6 +70,8 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
     public void setVariables(String module, Map<String, String> variables) throws IvyException {
         Ivy ivy = getIvy(module);
         IvySettings settings = ivy.getSettings();
+        DefaultIvyVariableContainer variableContainer = (DefaultIvyVariableContainer) settings.getVariables();
+        variableContainer.clean();
         settings.addAllVariables(variables, true);
     }
 
@@ -108,7 +111,10 @@ public class IvyProjectComponent extends ProjectComponentAdapter {
         if (result == null) {
             result = new Ivy();
             result.setEventManager(new DefaultEventManager());
+            DefaultIvyVariableContainer variableContainer = new DefaultIvyVariableContainer();
+            result.setSettings(new IvySettings(variableContainer));
             result.bind();
+            variableContainer.bind();
             ((DefaultEventManager) result.getEventManager()).removeAllListeners();
             result.getLoggerEngine().setDefaultLogger(new DefaultMessageLogger(-1));
             try {
