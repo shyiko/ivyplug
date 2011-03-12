@@ -18,9 +18,11 @@ package ivyplug.ui.configuration;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
-import ivyplug.prevsupport.FileTypeDescriptor;
 import com.intellij.openapi.vfs.VirtualFile;
 import ivyplug.bundles.IvyPlugBundle;
+import ivyplug.prevsupport.FileTypeDescriptor;
+import ivyplug.prevsupport.factories.JListFactory;
+import ivyplug.prevsupport.factories.JScrollPaneFactory;
 
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
@@ -33,9 +35,6 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
-import ivyplug.prevsupport.factories.JListFactory;
-import ivyplug.prevsupport.factories.JScrollPaneFactory;
-
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 02.02.2011
@@ -43,15 +42,15 @@ import ivyplug.prevsupport.factories.JScrollPaneFactory;
 public class PropertyFilesPanel extends JPanel {
 
     private final JList propertyFilesList = JListFactory.createJList(new DefaultListModel());
-    private final JButton addButton = new JButton(IvyPlugBundle.message("button.add"));
-    private final JButton removeButton = new JButton(IvyPlugBundle.message("button.remove"));
-    private final JButton moveUpButton = new JButton(IvyPlugBundle.message("button.move.up"));
-    private final JButton moveDownButton = new JButton(IvyPlugBundle.message("button.move.down"));
+    private final JButton addButton = new JButton(IvyPlugBundle.message("ui.button.add"));
+    private final JButton removeButton = new JButton(IvyPlugBundle.message("ui.button.remove"));
+    private final JButton moveUpButton = new JButton(IvyPlugBundle.message("ui.button.move.up"));
+    private final JButton moveDownButton = new JButton(IvyPlugBundle.message("ui.button.move.down"));
     private boolean modified;
 
     public PropertyFilesPanel() {
         final FileChooserDescriptor fileChooserDescriptor =
-                new FileTypeDescriptor(IvyPlugBundle.message("filechooser.description.add.properties"), "properties");
+                new FileTypeDescriptor(IvyPlugBundle.message("ui.filechooser.description.add.properties.title"), "properties");
         final FileChooserFactory instance = FileChooserFactory.getInstance();
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

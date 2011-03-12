@@ -13,28 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug;
-
-import com.intellij.openapi.module.Module;
+package ivyplug.resolving.events;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
- * @since 28.01.2011
+ * @since 17.02.2011
  */
-public class IvyException extends Exception {
+public interface EventListener {
 
-    private Module module;
-
-    public IvyException(String message, Throwable throwable) {
-        this(null, message, throwable);
-    }
-
-    public IvyException(Module module, String message, Throwable throwable) {
-        super(message, throwable);
-        this.module = module;
-    }
-
-    public Module getModule() {
-        return module;
-    }
+    void onEvent(Event event);
 }

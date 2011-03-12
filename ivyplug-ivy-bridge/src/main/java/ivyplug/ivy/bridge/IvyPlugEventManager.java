@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.facade;
+package ivyplug.ivy.bridge;
 
 import org.apache.ivy.core.event.*;
 import org.apache.ivy.plugins.repository.TransferEvent;
@@ -27,7 +27,7 @@ import java.util.Arrays;
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 03.02.2011
  */
-public class DefaultEventManager extends EventManager {
+public class IvyPlugEventManager extends EventManager {
 
     private DefaultEventListenerList listeners = new DefaultEventListenerList();
 
@@ -46,10 +46,10 @@ public class DefaultEventManager extends EventManager {
     public void removeIvyListener(IvyListener listener) {
         listeners.remove(IvyListener.class, listener);
         IvyListener[] listeners = this.listeners.getListeners(IvyListener.class);
-        for (int i = 0; i < listeners.length; i++) {
-            if (listeners[i] instanceof FilteredIvyListener) {
-                if (listener.equals(((FilteredIvyListener) listeners[i]).getIvyListener())) {
-                    this.listeners.remove(IvyListener.class, listeners[i]);
+        for (IvyListener ivyListener : listeners) {
+            if (ivyListener instanceof FilteredIvyListener) {
+                if (listener.equals(((FilteredIvyListener) ivyListener).getIvyListener())) {
+                    this.listeners.remove(IvyListener.class, ivyListener);
                 }
             }
         }

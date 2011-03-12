@@ -1,0 +1,32 @@
+defaultTasks 'clean', 'zip'
+
+apply plugin: 'java'
+
+configurations {
+    zip
+}
+
+repositories {
+	flatDir name: 'idea/lib', dirs: "${property('idea.home')}/lib"
+}
+
+dependencies {
+    compile ':idea', ':jdom', ':openapi', ':util', ':extensions', ':annotations'
+}
+
+task ('zip', type: Zip).doFirst {
+    project.dependencies {
+		zip project(":ivyplug-ivy-bridge")
+	}
+    archiveName = "ivyplug-${project.property('build.number')}"
+    into('ivyplug/lib') {
+        from configurations.archives.allArtifactFiles.files
+    }
+    into('ivyplug/lib/ext') {
+        from configurations.zip.files.grep({it.name.startsWith('ivyplug-ivy-bridge')})
+    }
+}
+getChildProjects().each {String name, Project childProject ->
+	zip.dependsOn ":${name}:jar"
+}
+

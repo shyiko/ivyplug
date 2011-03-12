@@ -15,7 +15,7 @@
  */
 package ivyplug.prevsupport;
 
-import com.intellij.util.ui.*;
+import com.intellij.util.ui.ColumnInfo;
 
 import java.util.Collection;
 import java.util.List;

@@ -38,8 +38,10 @@ import java.util.List;
 public class IvyProjectConfigurationEditor implements Configurable {
 
     private final JPanel rootPanel = new JPanel(new GridBagLayout());
-    private final JCheckBox autoCleanupCheckbox = new JCheckBox(IvyPlugBundle.message("auto.cleanup.checkbox"));
-    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("project.path.to.ivysettings.xml.file"));
+    private final JLabel ivyHomeLabel = new JLabel(IvyPlugBundle.message("ui.ivy.home.directory.label"));
+    private final TextFieldWithBrowseButton ivyHomeTextField = new TextFieldWithBrowseButton();
+    private final JCheckBox autoCleanupCheckbox = new JCheckBox(IvyPlugBundle.message("ui.auto.cleanup.checkbox"));
+    private final JLabel ivySettingsXMLLabel = new JLabel(IvyPlugBundle.message("ui.project.path.to.ivysettings.xml.file"));
     private final TextFieldWithBrowseButton ivySettingsXML = new TextFieldWithBrowseButton();
     private final PropertiesCompositePanel propertiesCompositePanel = new PropertiesCompositePanel();
 
@@ -50,12 +52,18 @@ public class IvyProjectConfigurationEditor implements Configurable {
     }
 
     public JComponent createComponent() {
+        ivyHomeTextField.addActionListener(new BrowseFilesListener(ivyHomeTextField.getTextField(),
+                IvyPlugBundle.message("ui.ivy.home.directory.filechooser.title"),
+                IvyPlugBundle.message("ui.ivy.home.directory.filechooser.description"),
+                BrowseFilesListener.SINGLE_DIRECTORY_DESCRIPTOR));
         ivySettingsXML.addActionListener(new BrowseFilesListener(ivySettingsXML.getTextField(),
-                IvyPlugBundle.message("select.ivysettings.xml.file.location"),
-                IvyPlugBundle.message("selected.file.will.be.used.for.ivy.configuration"),
+                IvyPlugBundle.message("ui.select.ivysettings.xml.file.location"),
+                IvyPlugBundle.message("ui.selected.file.will.be.used.for.ivy.configuration"),
                 BrowseFilesListener.SINGLE_FILE_DESCRIPTOR));
         final GridBagConstraints gc = new GridBagConstraints(0, GridBagConstraints.RELATIVE, 1, 1, 1.0, 0.0,
                 GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0);
+        rootPanel.add(ivyHomeLabel, gc);
+        rootPanel.add(ivyHomeTextField, gc);
         rootPanel.add(autoCleanupCheckbox, gc);
         rootPanel.add(ivySettingsXMLLabel, gc);
         rootPanel.add(ivySettingsXML, gc);
@@ -68,7 +76,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
 
     @Nls
     public String getDisplayName() {
-        return IvyPlugBundle.message("project.ivyplug.configuration");
+        return IvyPlugBundle.message("ivyplug.project.configuration.tab.title");
     }
 
     public Icon getIcon() {
@@ -81,19 +89,21 @@ public class IvyProjectConfigurationEditor implements Configurable {
 
     public boolean isModified() {
         IvyProjectConfiguration configuration = configurationProjectComponent.getConfiguration();
-        return !(equals(getPath(configuration.getIvySettingsXMlFile()), ivySettingsXML.getText())) ||
+        return !(equals(getPath(configuration.getIvyHome()), ivyHomeTextField.getText())) ||
+               !(equals(getPath(configuration.getIvySettingsXMlFile()), ivySettingsXML.getText())) ||
                propertiesCompositePanel.isModified() || configuration.isAutoCleanup() != autoCleanupCheckbox.isSelected();
     }
 
     public void apply() throws ConfigurationException {
         IvyProjectConfiguration configuration = configurationProjectComponent.getConfiguration();
+        configuration.setIvyHome(getFile(ivyHomeTextField.getText()));
         configuration.setIvySettingsXMlFile(getFile(ivySettingsXML.getText()));
         List<String> propertyFilesOriginList = propertiesCompositePanel.getPropertyFiles();
         List<File> propertyFiles = new ArrayList<File>(propertyFilesOriginList.size());
         for (String propertyFile : propertyFilesOriginList) {
             File file = new File(propertyFile);
             if (!file.exists())
-                throw new ConfigurationException(IvyPlugBundle.message("file.doesnt.exist", file.getAbsolutePath()));
+                throw new ConfigurationException(IvyPlugBundle.message("file.doesnt.exist.exception", file.getAbsolutePath()));
             propertyFiles.add(file);
         }
         configuration.setPropertyFiles(propertyFiles);
@@ -104,6 +114,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
 
     public void reset() {
         IvyProjectConfiguration configuration = configurationProjectComponent.getConfiguration();
+        ivyHomeTextField.setText(getPath(configuration.getIvyHome()));
         ivySettingsXML.setText(getPath(configuration.getIvySettingsXMlFile()));
         List<File> propertyFilesOriginList = configuration.getPropertyFiles();
         List<String> propertyFiles = new ArrayList<String>(propertyFilesOriginList.size());
@@ -133,7 +144,7 @@ public class IvyProjectConfigurationEditor implements Configurable {
         if (filePath != null && !filePath.trim().isEmpty()) {
             result = new File(filePath);
             if (!result.exists())
-                throw new ConfigurationException(IvyPlugBundle.message("file.doesnt.exist", filePath));
+                throw new ConfigurationException(IvyPlugBundle.message("file.doesnt.exist.exception", filePath));
         }
         return result;
     }

@@ -75,10 +75,10 @@ public abstract class Configuration {
                         reader.close();
                     }
                 } catch (IOException e) {
-                    warn(IvyPlugBundle.message("failed.to.read.file", file.getAbsolutePath()));
+                    warn(IvyPlugBundle.message("failed.to.read.file.exception", file.getAbsolutePath()));
                 }
             } else {
-                warn(IvyPlugBundle.message("failed.to.locate.file", file.getAbsolutePath()));
+                warn(IvyPlugBundle.message("failed.to.locate.file.exception", file.getAbsolutePath()));
             }
         }
         return result;

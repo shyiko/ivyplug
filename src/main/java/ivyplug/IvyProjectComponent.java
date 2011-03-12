@@ -15,24 +15,33 @@
  */
 package ivyplug;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.net.HttpConfigurable;
 import ivyplug.adapters.ProjectComponentAdapter;
 import ivyplug.bundles.IvyPlugBundle;
-import ivyplug.facade.DefaultEventManager;
-import ivyplug.facade.DefaultIvyVariableContainer;
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.event.IvyEvent;
-import org.apache.ivy.core.event.IvyListener;
-import org.apache.ivy.core.event.download.StartArtifactDownloadEvent;
-import org.apache.ivy.core.event.resolve.StartResolveDependencyEvent;
-import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.repository.TransferEvent;
-import org.apache.ivy.util.DefaultMessageLogger;
+import ivyplug.dependencies.DependencySyncManager;
+import ivyplug.dependencies.ProjectDependenciesManager;
+import ivyplug.resolving.ResolveContext;
+import ivyplug.resolving.ResolveException;
+import ivyplug.resolving.ResolveResult;
+import ivyplug.resolving.Resolver;
+import ivyplug.resolving.dependencies.ResolvedDependency;
+import ivyplug.resolving.dependencies.ResolvedLibraryDependency;
+import ivyplug.resolving.dependencies.ResolvedModuleDependency;
+import ivyplug.resolving.dependencies.UnresolvedDependency;
+import ivyplug.resolving.events.*;
+import ivyplug.ui.configuration.project.IvyProjectConfigurationProjectComponent;
+import ivyplug.ui.messages.Message;
+import ivyplug.ui.messages.MessagesProjectComponent;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,89 +50,193 @@ import java.util.Map;
  */
 public class IvyProjectComponent extends ProjectComponentAdapter {
 
-    private Map<String, Ivy> moduleIvyMap;
+    private ResolverLoader resolverLoader;
+    private boolean syncInProgress;
 
     public IvyProjectComponent(Project project) {
         super(project);
-        moduleIvyMap = new HashMap<String, Ivy>();
+        resolverLoader = project.getComponent(ResolverLoader.class);
     }
 
-    public void configure(String module, File ivySettingXml) throws IvyException {
-        Ivy ivy = getIvy(module);
-        ivy.popContext();
-        try {
-            ivy.configure(ivySettingXml);
-        } catch (Exception e) {
-            throw new IvyException(IvyPlugBundle.message("failed.configuration", ivySettingXml.getAbsolutePath()), e);
-        }
+    public boolean isSyncInProgress() {
+        return syncInProgress;
     }
 
-    public ResolveReport resolve(String module, File ivyXml) throws IvyException {
-        Ivy ivy = getIvy(module);
-        try {
-            return ivy.resolve(ivyXml);
-        } catch (Exception e) {
-            throw new IvyException(IvyPlugBundle.message("failed.resolve", ivyXml.getAbsolutePath()), e);
-        }
-    }
-
-    public void setVariables(String module, Map<String, String> variables) throws IvyException {
-        Ivy ivy = getIvy(module);
-        IvySettings settings = ivy.getSettings();
-        DefaultIvyVariableContainer variableContainer = (DefaultIvyVariableContainer) settings.getVariables();
-        variableContainer.clean();
-        settings.addAllVariables(variables, true);
-    }
-
-    public void bindWatcher(String module, final ProgressIndicator indicator) throws IvyException {
-        Ivy ivy = getIvy(module);
-        DefaultEventManager eventManager = (DefaultEventManager) ivy.getResolveEngine().getEventManager();
-        eventManager.removeAllListeners();
-        if (indicator == null)
-            return;
-        final Map<String, Long> downloadStats = new HashMap<String, Long>();
-        eventManager.addIvyListener(new IvyListener() {
-            public void progress(IvyEvent event) {
-                if (event.getClass() == TransferEvent.class) {
-                    TransferEvent e = (TransferEvent) event;
-                    if (e.getEventType() == TransferEvent.TRANSFER_STARTED || e.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
-                        String artifactURI = e.getResource().getName();
-                        Long downloaded = downloadStats.get(artifactURI);
-                        downloaded = (downloaded == null ? 0 : downloaded) + e.getLength();
-                        downloadStats.put(artifactURI, downloaded);
-                        indicator.setText(IvyPlugBundle.message("artifact.downloading.message", artifactURI, downloaded / 1024, e.getTotalLength() / 1024));
+    public void scheduleReimport(final List<Module> modules) {
+        if (resolverLoader.loadIvy()) {
+            refreshProxyConfigurationsIfAny();
+            new Task.Backgroundable(project, IvyPlugBundle.message("synchronization.task.title"), false) {
+                public void run(@NotNull ProgressIndicator indicator) {
+                    syncInProgress = true;
+                    try {
+                        indicator.setText(IvyPlugBundle.message("synchronization.preparing.message"));
+                        indicator.setFraction(0.0);
+                        bindWatcher(indicator);
+                        reimport(modules);
+                        indicator.setFraction(1.0);
+                    } finally {
+                        syncInProgress = false;
                     }
-                } else
-                if (event.getClass() == StartResolveDependencyEvent.class) {
-                    StartResolveDependencyEvent e = (StartResolveDependencyEvent) event;
-                    indicator.setText(IvyPlugBundle.message("resolving.dependency.message", e.getDependencyDescriptor().getDependencyRevisionId()));
-                } else
-                if (event.getClass() == StartArtifactDownloadEvent.class) {
-                    StartArtifactDownloadEvent e = (StartArtifactDownloadEvent) event;
-                    indicator.setText(IvyPlugBundle.message("pom.downloading.message", e.getArtifact().getId()));
+                }
+            }.queue();
+        }
+    }
+
+    private void refreshProxyConfigurationsIfAny() {
+        HttpConfigurable httpConfigurable = HttpConfigurable.getInstance();
+        httpConfigurable.setAuthenticator();
+    }
+
+    private void reimport(Collection<Module> modules) {
+        Map<ResolveContext, ResolveResult> resolveMap = resolve(modules);
+        for (Map.Entry<ResolveContext, ResolveResult> entry : resolveMap.entrySet()) {
+            Module module = entry.getKey().getModuleToResolve();
+            ResolveResult resolveResult = entry.getValue();
+            DependencySyncManager dependencySyncManager = module.getComponent(DependencySyncManager.class);
+            for (ResolvedDependency dependency : resolveResult.getResolvedDependencies()) {
+                switch (dependency.getDependencyType()) {
+                    case LIBRARY:
+                        dependencySyncManager.addResolvedLibraryDependency((ResolvedLibraryDependency) dependency);
+                        break;
+                    case MODULE:
+                        dependencySyncManager.addResolvedModuleDependency((ResolvedModuleDependency) dependency);
+                        break;
+                    default:
+                        throw new UnsupportedOperationException();
+                }
+            }
+            IvyProjectConfigurationProjectComponent projectConfigurationComponent =
+                    module.getProject().getComponent(IvyProjectConfigurationProjectComponent.class);
+            dependencySyncManager.commit(projectConfigurationComponent.getConfiguration().isAutoCleanup());
+        }
+        ProjectDependenciesManager projectDependenciesManager = project.getComponent(ProjectDependenciesManager.class);
+        projectDependenciesManager.removeUnusedLibraries();
+    }
+
+    private Map<ResolveContext, ResolveResult> resolve(Collection<Module> modules) {
+        Map<ResolveContext, ResolveResult> result = new HashMap<ResolveContext, ResolveResult>();
+        Resolver resolver = resolverLoader.getResolver();
+        for (Module module : modules) {
+            ResolveContext resolveContext = new ResolveContext(module);
+            ResolveResult resolveResult;
+            try {
+                resolveResult = resolver.resolve(resolveContext);
+            } catch (ResolveException ex) {
+                handleResolveException(module, ex);
+                continue;
+            }
+            IvyModuleComponent moduleComponent = module.getComponent(IvyModuleComponent.class);
+            moduleComponent.setOrg(resolveResult.getOrganisation());
+            result.put(resolveContext, resolveResult);
+        }
+        processModuleDependencies(result);
+        return result;
+    }
+
+    private void processModuleDependencies(Map<ResolveContext, ResolveResult> resolveMap) {
+        Map<String, Module> ivyModules = new HashMap<String, Module>();
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        for (Module module : moduleManager.getModules()) {
+            IvyModuleComponent moduleComponent = module.getComponent(IvyModuleComponent.class);
+            String org;
+            if (moduleComponent.isIvyModule() && (org = moduleComponent.getOrg()) != null) {
+                ivyModules.put(org + ":" + module.getName(), module);
+            }
+        }
+        Map<ResolveContext, ResolveResult> notFullyResolved = new HashMap<ResolveContext, ResolveResult>();
+        for (Map.Entry<ResolveContext, ResolveResult> entry: resolveMap.entrySet()){
+            ResolveContext resolveContext = entry.getKey();
+            ResolveResult resolveResult = entry.getValue();
+            List<ResolvedDependency> resolvedDependencies = resolveResult.getResolvedDependencies();
+            List<UnresolvedDependency> unresolvedDependencies = resolveResult.getUnresolvedDependencies();
+            for (int i = unresolvedDependencies.size() - 1; i > -1; i--) {
+                UnresolvedDependency dependency = unresolvedDependencies.get(i);
+                String org = dependency.getOrg();
+                String moduleId = dependency.getModule();
+                Module module = ivyModules.get(org + ":" + moduleId);
+                if (module != null) {
+                    unresolvedDependencies.remove(dependency);
+                    resolvedDependencies.add(new ResolvedModuleDependency(module));
+                }
+            }
+            if (!unresolvedDependencies.isEmpty()) {
+                notFullyResolved.put(resolveContext, resolveResult);
+            }
+        }
+        for (Map.Entry<ResolveContext, ResolveResult> entry: notFullyResolved.entrySet()){
+            ResolveContext resolveContext = entry.getKey();
+            ResolveResult resolveResult = entry.getValue();
+            resolveMap.remove(resolveContext);
+            Module moduleToResolve = resolveContext.getModuleToResolve();
+            informAboutFailedDependencies(moduleToResolve, resolveResult.getUnresolvedDependencies());
+        }
+    }
+
+    private void informAboutFailedDependencies(Module module, List<UnresolvedDependency> failedDependencies) {
+        Project project = module.getProject();
+        Message[] messages = new Message[failedDependencies.size()];
+        int i = 0;
+        for (UnresolvedDependency failedDependency : failedDependencies) {
+            messages[i++] = new Message(Message.Type.ERROR, IvyPlugBundle.message("resolve.failed.dependency.message",
+                    getAsAString(failedDependency.getOrg(), "") + ":" +
+                            getAsAString(failedDependency.getModule(), "") + ":" +
+                            getAsAString(failedDependency.getRev(), "unknown")));
+        }
+        MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
+        messagesProjectComponent.show(module, messages);
+    }
+
+    private void handleResolveException(Module module, ResolveException ex) {
+        MessagesProjectComponent messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
+        messagesProjectComponent.show(module, new Message(Message.Type.ERROR, ex.getMessage(),
+                IvyPlugBundle.message("resolve.exception.reason", ex.getCause().getMessage())));
+    }
+
+    private void bindWatcher(final ProgressIndicator indicator) {
+        EventManager eventManager = EventManager.getInstance();
+        eventManager.setEventListener(new ivyplug.resolving.events.EventListener() {
+            public void onEvent(Event event) {
+                //todo: refactor
+                String statusMessage = null;
+                if (event instanceof ResolveEvent) {
+                    ResolveEvent e = (ResolveEvent) event;
+                    String dependency = getAsAString(e.getOrg(), "") + ":" +
+                            getAsAString(e.getModule(), "") + ":" +
+                            getAsAString(e.getRev(), "unknown") +
+                            getAsAString(":/", e.getBranch(), "");
+                    statusMessage = IvyPlugBundle.message("resolve.event.message", dependency);
+                } else if (event instanceof StartingDownloadEvent) {
+                    StartingDownloadEvent e = (StartingDownloadEvent) event;
+                    String dependency = getAsAString(e.getOrg(), "") + ":" +
+                            getAsAString(e.getModule(), "") + ":" +
+                            getAsAString(e.getRev(), "unknown") +
+                            getAsAString(":/", e.getBranch(), "") +
+                            getAsAString(" (", e.getType(), ")", "");
+                    statusMessage = IvyPlugBundle.message("starting.download.event.message", dependency);
+                } else if (event instanceof DownloadProgressEvent) {
+                    DownloadProgressEvent e = (DownloadProgressEvent) event;
+                    statusMessage = IvyPlugBundle.message("download.progress.event.message", e.getUri(),
+                            e.getBytesCompleted() / 1024, e.getTotalSize() / 1024);
+                }
+                if (statusMessage != null) {
+                    indicator.setText(statusMessage);
                 }
             }
         });
     }
 
-    private Ivy getIvy(String module) throws IvyException {
-        Ivy result = moduleIvyMap.get(module);
-        if (result == null) {
-            result = new Ivy();
-            result.setEventManager(new DefaultEventManager());
-            DefaultIvyVariableContainer variableContainer = new DefaultIvyVariableContainer();
-            result.setSettings(new IvySettings(variableContainer));
-            result.bind();
-            variableContainer.bind();
-            ((DefaultEventManager) result.getEventManager()).removeAllListeners();
-            result.getLoggerEngine().setDefaultLogger(new DefaultMessageLogger(-1));
-            try {
-                result.configureDefault();
-            } catch (Exception e) {
-                throw new IvyException(IvyPlugBundle.message("failed.to.load.default.ivysettings.xml"), e);
-            }
-            moduleIvyMap.put(module, result);
+    private String getAsAString(String prefix, String value, String suffix, String defaultValue) {
+        if (value == null) {
+            return defaultValue;
         }
-        return result;
+        return prefix + value + suffix;
+    }
+
+    private String getAsAString(String prefix, String value, String defaultValue) {
+        return getAsAString(prefix, value, "", defaultValue);
+    }
+
+    private String getAsAString(String value, String defaultValue) {
+        return getAsAString("", value, defaultValue);
     }
 }

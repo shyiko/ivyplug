@@ -15,12 +15,12 @@
  */
 package ivyplug.ui.messages;
 
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
@@ -113,13 +113,13 @@ public class MessagesProjectComponent extends ProjectComponentAdapter {
         });
     }
 
-    public void closeOurMessageTabs() {
+    public void closeIvyPlugMessageTabs() {
         SwingUtilities.invokeLater(new Runnable() {
 
             public void run() {
                 ContentManager contentManager = messageView.getContentManager();
                 Content[] contents = contentManager.getContents();
-                String ivyPlugBundle = IvyPlugBundle.message("general.message.tab");
+                String ivyPlugBundle = IvyPlugBundle.message("ui.general.message.tab");
                 for (int i = contents.length - 1; i > -1; i--) {
                     Content content = contents[i];
                     String tabName = content.getTabName();
@@ -153,6 +153,6 @@ public class MessagesProjectComponent extends ProjectComponentAdapter {
     }
 
     private String getTabTitle(Module module) {
-        return IvyPlugBundle.message("messages.toolwindow.tab", MODULE_TAB_PREFIX, module.getName());
+        return IvyPlugBundle.message("ui.messages.toolwindow.tab", MODULE_TAB_PREFIX, module.getName());
     }
 }

@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug;
+package ivyplug.resolving;
 
-import com.intellij.openapi.project.Project;
-import ivyplug.adapters.ProjectComponentAdapter;
+import ivyplug.bundles.IvyPlugBundle;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
- * @since 08.02.2011
+ * @since 12.02.2011
  */
-public class IvyPlugProjectComponent extends ProjectComponentAdapter {
+public class IvyResolveException extends ResolveException {
 
-    private boolean syncInProgress;
+    private String ivyDescriptorFile;
 
-    public IvyPlugProjectComponent(Project project) {
-        super(project);
+    public IvyResolveException(String ivyDescriptorFile, Throwable cause) {
+        super(cause);
+        this.ivyDescriptorFile = ivyDescriptorFile;
     }
 
-    public boolean isSyncInProgress() {
-        return syncInProgress;
+    public String getIvyDescriptorFile() {
+        return ivyDescriptorFile;
     }
 
-    public void setSyncInProgress(boolean syncInProgress) {
-        this.syncInProgress = syncInProgress;
+    @Override
+    public String getMessage() {
+        return IvyPlugBundle.message("resolve.resolving.exception.message", ivyDescriptorFile);
     }
 }

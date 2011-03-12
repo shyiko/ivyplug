@@ -1,0 +1,21 @@
+apply plugin: 'java'
+
+repositories {
+	flatDir name: 'idea/lib', dirs: "${property('idea.home')}/lib"
+    mavenCentral()
+}
+
+dependencies {
+    compile project(":")
+    compile ':openapi', ':util', ':extensions'
+    compile 'org.apache.ivy:ivy:2.2.0'
+}
+
+task ('uploadToIDEAPluginSandbox', dependsOn: 'jar') {
+    def extDir = "${project.property('idea.home')}/work/system/plugins-sandbox/plugins/ivyplug/lib/ext"
+    file("${extDir}/${project.name}.jar").delete()
+    copy {
+        from configurations.archives.allArtifactFiles.files
+        into extDir
+    }
+}

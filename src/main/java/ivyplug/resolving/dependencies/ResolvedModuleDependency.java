@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.dependencies;
+package ivyplug.resolving.dependencies;
 
 import com.intellij.openapi.module.Module;
 
@@ -21,11 +21,11 @@ import com.intellij.openapi.module.Module;
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 03.02.2011
  */
-public class ModuleDependency extends Dependency {
+public class ResolvedModuleDependency extends ResolvedDependency {
 
     private Module module;
 
-    public ModuleDependency(Module module) {
+    public ResolvedModuleDependency(Module module) {
         super(DependencyType.MODULE);
         this.module = module;
     }
@@ -36,12 +36,18 @@ public class ModuleDependency extends Dependency {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        ModuleDependency that = (ModuleDependency) o;
+        ResolvedModuleDependency that = (ResolvedModuleDependency) o;
 
-        if (!module.getName().equals(that.module.getName())) return false;
+        if (!module.getName().equals(that.module.getName())) {
+            return false;
+        }
 
         return true;
     }

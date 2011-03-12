@@ -23,11 +23,15 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
+import com.intellij.util.ui.UIUtil;
 import ivyplug.adapters.ModuleComponentAdapter;
+import ivyplug.resolving.dependencies.ResolvedLibraryDependency;
+import ivyplug.resolving.dependencies.ResolvedModuleDependency;
 
-import javax.swing.*;
 import java.io.File;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,8 +46,8 @@ public class DependencySyncManager extends ModuleComponentAdapter {
     private Project project;
     private LibraryTablesRegistrar libraryTablesRegistrar;
     private ModuleRootManager moduleRootManager;
-    private Set<LibraryDependency> libraryDependencies;
-    private Set<ModuleDependency> moduleDependencies;
+    private Set<ResolvedLibraryDependency> libraryDependencies;
+    private Set<ResolvedModuleDependency> moduleDependencies;
 
     public DependencySyncManager(Module module) {
         super(module);
@@ -51,29 +55,24 @@ public class DependencySyncManager extends ModuleComponentAdapter {
         project = module.getProject();
         libraryTablesRegistrar = LibraryTablesRegistrar.getInstance();
         moduleRootManager = ModuleRootManager.getInstance(module);
-        libraryDependencies = new HashSet<LibraryDependency>();
-        moduleDependencies = new HashSet<ModuleDependency>();
+        libraryDependencies = new HashSet<ResolvedLibraryDependency>();
+        moduleDependencies = new HashSet<ResolvedModuleDependency>();
     }
 
-    public void addLibraryDependency(String org, String module, String rev,
-                                     LibraryDependency.ArtifactType artifactType, File file) {
-        libraryDependencies.add(new LibraryDependency(org, module, rev, artifactType, file));
+    public void addResolvedLibraryDependency(ResolvedLibraryDependency resolvedLibraryDependency) {
+        libraryDependencies.add(resolvedLibraryDependency);
     }
 
-    public void addModuleDependency(Module module) {
-        moduleDependencies.add(new ModuleDependency(module));
-    }
-
-    public void commit() {
-        commit(false);
+    public void addResolvedModuleDependency(ResolvedModuleDependency resolvedModuleDependency) {
+        moduleDependencies.add(resolvedModuleDependency);
     }
 
     public void commit(final boolean removeOldLibraries) {
-        final Set<LibraryDependency> libraryDependenciesToMerge = libraryDependencies;
-        final Set<ModuleDependency> moduleDependenciesToMerge = moduleDependencies;
-        libraryDependencies = new HashSet<LibraryDependency>();
-        moduleDependencies = new HashSet<ModuleDependency>();
-        SwingUtilities.invokeLater(new Runnable() {
+        final Set<ResolvedLibraryDependency> libraryDependenciesToMerge = libraryDependencies;
+        final Set<ResolvedModuleDependency> moduleDependenciesToMerge = moduleDependencies;
+        libraryDependencies = new HashSet<ResolvedLibraryDependency>();
+        moduleDependencies = new HashSet<ResolvedModuleDependency>();
+        UIUtil.invokeLaterIfNeeded(new Runnable() {
 
             public void run() {
                 application.runWriteAction(new Runnable() {
@@ -81,14 +80,16 @@ public class DependencySyncManager extends ModuleComponentAdapter {
                     public void run() {
                         ModifiableRootModel modifiableModuleModel = moduleRootManager.getModifiableModel();
                         try {
-                            if (removeOldLibraries)
+                            if (removeOldLibraries) {
                                 removeOldLibraries(modifiableModuleModel);
+                            }
                             mergeLibraryDependencies(modifiableModuleModel, libraryDependenciesToMerge);
                             mergeModuleDependencies(modifiableModuleModel, moduleDependenciesToMerge);
                             modifiableModuleModel.commit();
-                        } catch (RuntimeException ex) {
-                            modifiableModuleModel.dispose();
-                            throw ex;
+                        } finally {
+                            if (modifiableModuleModel.isWritable()) {
+                                modifiableModuleModel.dispose();
+                            }
                         }
                     }
                 });
@@ -108,55 +109,74 @@ public class DependencySyncManager extends ModuleComponentAdapter {
         }
     }
 
-    private void mergeLibraryDependencies(ModifiableRootModel modifiableModuleModel, Set<LibraryDependency> libraryDependenciesToCommit) {
+    private void mergeLibraryDependencies(ModifiableRootModel modifiableModuleModel, Set<ResolvedLibraryDependency> libraryDependenciesToCommit) {
         LibraryTable projectLibraryTable = libraryTablesRegistrar.getLibraryTable(project);
-        Set<String> moduleLibraries = getModuleLibraries(modifiableModuleModel);
-        for (LibraryDependency libraryDependency : libraryDependenciesToCommit) {
-            String libraryName = getLibraryName(libraryDependency);
+        Map<String, LibraryOrderEntry> moduleLibraries = getModuleLibraries(modifiableModuleModel);
+        for (ResolvedLibraryDependency resolvedLibraryDependency : libraryDependenciesToCommit) {
+            String libraryName = getLibraryName(resolvedLibraryDependency);
             Library library = projectLibraryTable.getLibraryByName(libraryName);
             if (library == null) {
                 library = projectLibraryTable.createLibrary(libraryName);
             }
-            if (!moduleLibraries.contains(libraryName)) {
-                moduleLibraries.add(libraryName);
-                modifiableModuleModel.addLibraryEntry(library);
+            LibraryOrderEntry libraryOrderEntry = moduleLibraries.get(libraryName);
+            if (libraryOrderEntry == null) {
+                libraryOrderEntry = modifiableModuleModel.addLibraryEntry(library);
+                moduleLibraries.put(libraryName, libraryOrderEntry);
             }
-            mergeLibraryDependency(library, libraryDependency);
+            libraryOrderEntry.setScope(getDependencyScope(resolvedLibraryDependency));
+            mergeResolvedLibraryDependency(library, resolvedLibraryDependency);
         }
     }
 
-    private Set<String> getModuleLibraries(ModifiableRootModel modifiableModuleModel) {
-        Set<String> result = new HashSet<String>();
+    private Map<String, LibraryOrderEntry> getModuleLibraries(ModifiableRootModel modifiableModuleModel) {
+        Map<String, LibraryOrderEntry> result = new HashMap<String, LibraryOrderEntry>();
         for (OrderEntry orderEntry : modifiableModuleModel.getOrderEntries()) {
             if (orderEntry instanceof LibraryOrderEntry) {
                 LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry) orderEntry;
                 String libName = libraryOrderEntry.getLibraryName();
-                if (libName != null)
-                    result.add(libName);
+                if (libName != null) {
+                    result.put(libName, libraryOrderEntry);
+                }
             }
         }
         return result;
     }
 
-    private String getLibraryName(LibraryDependency libraryDependency) {
+    private String getLibraryName(ResolvedLibraryDependency ResolvedLibraryDependency) {
         return String.format("%s%s:%s:%s", LIBRARY_PREFIX,
-                libraryDependency.getOrg(), libraryDependency.getModule(), libraryDependency.getRev());
+                ResolvedLibraryDependency.getOrg(), ResolvedLibraryDependency.getModule(), ResolvedLibraryDependency.getRev());
     }
 
-    private void mergeModuleDependencies(ModifiableRootModel modifiableModuleModel, Set<ModuleDependency> moduleDependenciesToCommit) {
+    private DependencyScope getDependencyScope(ResolvedLibraryDependency dependency) {
+        switch (dependency.getScope()) {
+            case COMPILE:
+                return DependencyScope.COMPILE;
+            case PROVIDED:
+                return DependencyScope.PROVIDED;
+            case RUNTIME:
+                return DependencyScope.RUNTIME;
+            case TEST:
+                return DependencyScope.TEST;
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
+
+    private void mergeModuleDependencies(ModifiableRootModel modifiableModuleModel, Set<ResolvedModuleDependency> moduleDependenciesToCommit) {
         Module[] moduleDependencies = modifiableModuleModel.getModuleDependencies();
         Set<String> alreadyBoundModules = new HashSet<String>(moduleDependencies.length);
         for (Module module : moduleDependencies) {
             alreadyBoundModules.add(module.getName());
         }
-        for (ModuleDependency moduleDependency : moduleDependenciesToCommit) {
-            Module module = moduleDependency.getModule();
-            if (!alreadyBoundModules.contains(module.getName()))
+        for (ResolvedModuleDependency ResolvedModuleDependency : moduleDependenciesToCommit) {
+            Module module = ResolvedModuleDependency.getModule();
+            if (!alreadyBoundModules.contains(module.getName())) {
                 modifiableModuleModel.addModuleOrderEntry(module);
+            }
         }
     }
 
-    private void mergeLibraryDependency(Library library, LibraryDependency dependency) {
+    private void mergeResolvedLibraryDependency(Library library, ResolvedLibraryDependency dependency) {
         Library.ModifiableModel modifiableModel = null;
         try {
             String[] searchScope;
@@ -175,8 +195,7 @@ public class DependencySyncManager extends ModuleComponentAdapter {
                     orderRootType = JavadocOrderRootType.getInstance();
                     break;
                 default:
-                    throw new UnsupportedOperationException("Unsupported dependency's artifact type " +
-                        dependency.getArtifactType().name());
+                    throw new UnsupportedOperationException();
             }
             String dependencyURI = toURI(dependency.getFile());
             for (String existingDependency : searchScope) {
@@ -187,8 +206,9 @@ public class DependencySyncManager extends ModuleComponentAdapter {
             modifiableModel = library.getModifiableModel();
             modifiableModel.addRoot(dependencyURI, orderRootType);
         } finally {
-            if (modifiableModel != null)
+            if (modifiableModel != null) {
                 modifiableModel.commit();
+            }
         }
     }
 

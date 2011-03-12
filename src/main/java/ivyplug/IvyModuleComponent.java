@@ -19,16 +19,10 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import ivyplug.adapters.ModuleComponentAdapter;
 import ivyplug.ui.configuration.module.IvyModuleConfiguration;
 import ivyplug.ui.configuration.module.IvyModuleConfigurationModuleComponent;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.report.ResolveReport;
 import org.jdom.Element;
-
-import java.io.File;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
@@ -41,13 +35,11 @@ public class IvyModuleComponent extends ModuleComponentAdapter implements Persis
 
     private static final String STATE_ORG = "org";
     private IvyModuleConfigurationModuleComponent ivyModuleConfigurationModuleComponent;
-    private IvyProjectComponent ivyProjectComponent;
     private String org;
 
     public IvyModuleComponent(Module module) {
         super(module);
         ivyModuleConfigurationModuleComponent = module.getComponent(IvyModuleConfigurationModuleComponent.class);
-        ivyProjectComponent = module.getProject().getComponent(IvyProjectComponent.class);
     }
 
     public void loadState(Element state) {
@@ -65,30 +57,12 @@ public class IvyModuleComponent extends ModuleComponentAdapter implements Persis
         return org;
     }
 
+    public void setOrg(String org) {
+        this.org = org;
+    }
+
     public boolean isIvyModule() {
         IvyModuleConfiguration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
         return configuration.getIvyXMlFile() != null;
-    }
-
-    public ResolveReport resolve() throws IvyException {
-        return resolve(null);
-    }
-
-    public ResolveReport resolve(ProgressIndicator indicator) throws IvyException {
-        ResolveReport result = null;
-        IvyModuleConfiguration configuration = ivyModuleConfigurationModuleComponent.getConfiguration();
-        File ivyXMl = configuration.getIvyXMlFile();
-        if (ivyXMl != null) {
-            ivyProjectComponent.setVariables(module.getName(), configuration.getResolvedProperties());
-            ivyProjectComponent.bindWatcher(module.getName(), indicator);
-            File ivySettingsXML = configuration.getIvySettingsXMlFile();
-            if (ivySettingsXML != null)
-                ivyProjectComponent.configure(module.getName(), ivySettingsXML);
-            result = ivyProjectComponent.resolve(module.getName(), ivyXMl);
-            ModuleDescriptor moduleDescriptor = result.getModuleDescriptor();
-            ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
-            org = moduleRevisionId.getOrganisation();
-        }
-        return result;
     }
 }

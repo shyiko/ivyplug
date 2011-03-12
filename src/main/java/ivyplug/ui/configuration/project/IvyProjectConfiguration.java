@@ -21,6 +21,8 @@ import ivyplug.ui.configuration.Configuration;
 import ivyplug.ui.messages.Message;
 import ivyplug.ui.messages.MessagesProjectComponent;
 
+import java.io.File;
+
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 03.02.2011
@@ -29,6 +31,7 @@ public class IvyProjectConfiguration extends Configuration {
 
     private Project project;
     private MessagesProjectComponent messagesProjectComponent;
+    private File ivyHome;
     private boolean autoCleanup = true;
 
     public IvyProjectConfiguration(Project project) {
@@ -37,6 +40,14 @@ public class IvyProjectConfiguration extends Configuration {
 
     public Project getProject() {
         return project;
+    }
+
+    public File getIvyHome() {
+        return ivyHome;
+    }
+
+    public void setIvyHome(File ivyHome) {
+        this.ivyHome = ivyHome;
     }
 
     public boolean isAutoCleanup() {
@@ -51,6 +62,6 @@ public class IvyProjectConfiguration extends Configuration {
     protected void warn(String message) {
         if (messagesProjectComponent == null)
             messagesProjectComponent = project.getComponent(MessagesProjectComponent.class);
-        messagesProjectComponent.addToTab(IvyPlugBundle.message("general.message.tab"), new Message(Message.Type.WARNING, message));
+        messagesProjectComponent.addToTab(IvyPlugBundle.message("ui.general.message.tab"), new Message(Message.Type.WARNING, message));
     }
 }

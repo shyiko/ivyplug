@@ -22,6 +22,8 @@ import com.intellij.openapi.project.Project;
 import ivyplug.ui.configuration.ConfigurationComponent;
 import org.jdom.Element;
 
+import java.io.File;
+
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 30.01.2011
@@ -32,6 +34,7 @@ import org.jdom.Element;
 public class IvyProjectConfigurationProjectComponent extends ConfigurationComponent implements ProjectComponent {
 
     private static final String AUTO_CLEANUP = "autoCleanup";
+    private static final String IVY_HOME_DIRECTORY = "ivyHome";
 
     public IvyProjectConfigurationProjectComponent(Project project) {
         super(new IvyProjectConfiguration(project));
@@ -39,13 +42,22 @@ public class IvyProjectConfigurationProjectComponent extends ConfigurationCompon
 
     public void loadState(Element state) {
         super.loadState(state);
+        IvyProjectConfiguration configuration = getConfiguration();
         String autoCleanup = state.getAttributeValue(AUTO_CLEANUP);
-        getConfiguration().setAutoCleanup(autoCleanup == null || autoCleanup.equalsIgnoreCase("true"));
+        configuration.setAutoCleanup(autoCleanup == null || autoCleanup.equalsIgnoreCase("true"));
+        String ivyHomeDir = state.getAttributeValue(IVY_HOME_DIRECTORY);
+        if (ivyHomeDir != null) {
+            configuration.setIvyHome(new File(ivyHomeDir));
+        }
     }
 
     public Element getState() {
         Element result = super.getState();
-        result.setAttribute(AUTO_CLEANUP, ((Boolean) getConfiguration().isAutoCleanup()).toString());
+        IvyProjectConfiguration configuration = getConfiguration();
+        result.setAttribute(AUTO_CLEANUP, ((Boolean) configuration.isAutoCleanup()).toString());
+        File ivyHomeDir = configuration.getIvyHome();
+        if (ivyHomeDir != null)
+            result.setAttribute(IVY_HOME_DIRECTORY, ivyHomeDir.getAbsolutePath());
         return result;
     }
 

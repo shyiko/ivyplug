@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.dependencies;
+package ivyplug.resolving.dependencies;
 
 import java.io.File;
 
@@ -21,21 +21,23 @@ import java.io.File;
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 03.02.2011
  */
-public class LibraryDependency extends Dependency {
+public class ResolvedLibraryDependency extends ResolvedDependency {
 
     private String org;
     private String module;
     private String rev;
     private ArtifactType artifactType;
     private File file;
+    private Scope scope;
 
-    LibraryDependency(String org, String module, String rev, ArtifactType artifactType, File file) {
+    public ResolvedLibraryDependency(String org, String module, String rev, ArtifactType artifactType, File file, Scope scope) {
         super(DependencyType.LIBRARY);
         this.org = org;
         this.module = module;
         this.rev = rev;
         this.artifactType = artifactType;
         this.file = file;
+        this.scope = scope;
     }
 
     public String getOrg() {
@@ -58,18 +60,36 @@ public class LibraryDependency extends Dependency {
         return file;
     }
 
+    public Scope getScope() {
+        return scope;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        LibraryDependency that = (LibraryDependency) o;
+        ResolvedLibraryDependency that = (ResolvedLibraryDependency) o;
 
-        if (artifactType != that.artifactType) return false;
-        if (!file.equals(that.file)) return false;
-        if (!module.equals(that.module)) return false;
-        if (!org.equals(that.org)) return false;
-        if (!rev.equals(that.rev)) return false;
+        if (artifactType != that.artifactType) {
+            return false;
+        }
+        if (!file.equals(that.file)) {
+            return false;
+        }
+        if (!module.equals(that.module)) {
+            return false;
+        }
+        if (!org.equals(that.org)) {
+            return false;
+        }
+        if (!rev.equals(that.rev)) {
+            return false;
+        }
 
         return true;
     }
@@ -82,9 +102,5 @@ public class LibraryDependency extends Dependency {
         result = 31 * result + artifactType.hashCode();
         result = 31 * result + file.hashCode();
         return result;
-    }
-
-    public enum ArtifactType {
-        CLASSES, SOURCES, JAVADOCS
     }
 }

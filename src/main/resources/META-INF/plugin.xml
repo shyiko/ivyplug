@@ -4,11 +4,15 @@
         Provides integration with Apache Ivy dependency manager.
         For more information, see <a href="https://github.com/shyiko/ivyplug/wiki">https://github.com/shyiko/ivyplug/wiki</a>
     ]]></description>
-    <version>1.0</version>
+    <version>1.0-milestone-2</version>
     <vendor email="stanley.shyiko@gmail.com" url="https://github.com/shyiko/ivyplug">Stanley Shyiko</vendor>
     <idea-version since-build="8000"/>
     <change-notes><![CDATA[
-        1.0
+        1.0-milestone-2
+        <ul>
+            <li>Ability to switch Ivy versions without restarting IDE</li>
+        </ul>
+        1.0-milestone-1
         <ul>
             <li>Apache Ivy 2.2.0</li>
             <li>Intellij IDEA 8+ support</li>
@@ -20,9 +24,6 @@
 
     <project-components>
         <component>
-            <implementation-class>ivyplug.IvyPlugProjectComponent</implementation-class>
-        </component>
-        <component>
             <implementation-class>ivyplug.IvyProjectComponent</implementation-class>
         </component>
         <component>
@@ -33,6 +34,9 @@
         </component>
         <component>
             <implementation-class>ivyplug.dependencies.ProjectDependenciesManager</implementation-class>
+        </component>
+        <component>
+            <implementation-class>ivyplug.ResolverLoader</implementation-class>
         </component>
     </project-components>
 

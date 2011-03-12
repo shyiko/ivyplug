@@ -18,8 +18,8 @@ package ivyplug.ui.configuration;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
 import ivyplug.bundles.IvyPlugBundle;
-import ivyplug.prevsupport.factories.JScrollPaneFactory;
 import ivyplug.prevsupport.ListTableModel;
+import ivyplug.prevsupport.factories.JScrollPaneFactory;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -40,14 +40,14 @@ import java.util.List;
  */
 public class PropertiesPanel extends JPanel {
 
-    private final JButton addButton = new JButton(IvyPlugBundle.message("button.add"));
-    private final JButton removeButton = new JButton(IvyPlugBundle.message("button.remove"));
+    private final JButton addButton = new JButton(IvyPlugBundle.message("ui.button.add"));
+    private final JButton removeButton = new JButton(IvyPlugBundle.message("ui.button.remove"));
     private final TableView<Variable> tableView;
     private boolean modified;
 
     public PropertiesPanel() {
         final ListTableModel<Variable> tableViewModel = new ListTableModel<Variable>(
-                new AbstractVariableColumn(IvyPlugBundle.message("column.name")) {
+                new AbstractVariableColumn(IvyPlugBundle.message("ui.column.name")) {
 
                     public String valueOf(Variable variable) {
                         return variable.name;
@@ -56,7 +56,7 @@ public class PropertiesPanel extends JPanel {
                     public void setValue(Variable variable, String value) {
                         variable.name = value;
                     }
-                }, new AbstractVariableColumn(IvyPlugBundle.message("column.value")) {
+                }, new AbstractVariableColumn(IvyPlugBundle.message("ui.column.value")) {
 
                     public String valueOf(Variable variable) {
                         return variable.value;

@@ -28,9 +28,9 @@ import java.util.Map;
  */
 public class PropertiesCompositePanel extends JPanel {
 
-    private final JLabel propertyFilesLabel = new JLabel(IvyPlugBundle.message("composite.panel.property.files"));
+    private final JLabel propertyFilesLabel = new JLabel(IvyPlugBundle.message("ui.composite.panel.property.files"));
     private final PropertyFilesPanel propertyFilesPanel = new PropertyFilesPanel();
-    private final JLabel customPropertiesLabel = new JLabel(IvyPlugBundle.message("composite.panel.custom.properties"));
+    private final JLabel customPropertiesLabel = new JLabel(IvyPlugBundle.message("ui.composite.panel.custom.properties"));
     private final PropertiesPanel customPropertiesPanel = new PropertiesPanel();
 
     public PropertiesCompositePanel() {

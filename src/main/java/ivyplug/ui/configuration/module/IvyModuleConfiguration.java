@@ -54,6 +54,10 @@ public class IvyModuleConfiguration extends Configuration {
         projectConfiguration = configurationProjectComponent.getConfiguration();
     }
 
+    public Module getModule() {
+        return module;
+    }
+
     public boolean isUseAutoDiscovery() {
         return useAutoDiscovery;
     }
@@ -99,7 +103,7 @@ public class IvyModuleConfiguration extends Configuration {
     protected void warn(String message) {
         if (messagesProjectComponent == null)
             messagesProjectComponent = module.getProject().getComponent(MessagesProjectComponent.class);
-        messagesProjectComponent.addToTab(IvyPlugBundle.message("general.message.tab"), new Message(Message.Type.WARNING, message));
+        messagesProjectComponent.addToTab(IvyPlugBundle.message("ui.general.message.tab"), new Message(Message.Type.WARNING, message));
     }
 
     @Nullable

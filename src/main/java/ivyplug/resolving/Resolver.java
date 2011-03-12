@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.dependencies;
+package ivyplug.resolving;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
- * @since 29.01.2011
+ * @since 09.02.2011
  */
-public enum DependencyType {
-    LIBRARY, MODULE
+public interface Resolver {
+
+    ResolveResult resolve(ResolveContext context) throws ResolveException;
 }

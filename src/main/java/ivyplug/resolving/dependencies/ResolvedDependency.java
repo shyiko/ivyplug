@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.dependencies;
+package ivyplug.resolving.dependencies;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 03.02.2011
  */
-public abstract class Dependency {
+public abstract class ResolvedDependency extends Dependency {
 
     private DependencyType dependencyType;
 
-    protected Dependency(DependencyType dependencyType) {
+    protected ResolvedDependency(DependencyType dependencyType) {
         this.dependencyType = dependencyType;
     }
 
     public DependencyType getDependencyType() {
         return dependencyType;
+    }
+
+    public enum DependencyType {
+        LIBRARY, MODULE
     }
 }

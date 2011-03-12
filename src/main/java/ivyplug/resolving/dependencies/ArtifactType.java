@@ -13,28 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ivyplug.facade;
-
-import org.apache.ivy.core.settings.IvyVariableContainerImpl;
-
-import java.util.HashMap;
-import java.util.Map;
+package ivyplug.resolving.dependencies;
 
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
- * @since 23.02.2011
+ * @since 11.03.2011
  */
-@SuppressWarnings({"unchecked"})
-public class DefaultIvyVariableContainer extends IvyVariableContainerImpl {
-
-    private Map variables;
-
-    public void bind() {
-        this.variables = new HashMap(getVariables());
-    }
-
-    public void clean() {
-        getVariables().clear();
-        getVariables().putAll(variables);
-    }
+public enum ArtifactType {
+    CLASSES, SOURCES, JAVADOCS
 }

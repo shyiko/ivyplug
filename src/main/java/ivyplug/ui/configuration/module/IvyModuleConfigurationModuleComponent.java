@@ -22,9 +22,6 @@ import com.intellij.openapi.module.ModuleComponent;
 import ivyplug.ui.configuration.ConfigurationComponent;
 import org.jdom.Element;
 
-import java.io.File;
-import java.util.*;
-
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">shyiko</a>
  * @since 30.01.2011
