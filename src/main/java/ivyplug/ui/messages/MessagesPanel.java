@@ -129,7 +129,7 @@ public class MessagesPanel extends JPanel implements DataProvider, CopyProvider 
     }
 
     public void addMessage(ErrorTreeElementKind type, String[] text) {
-        errorViewStructure.addMessage(type, text, null, -1, -1, null);
+        errorViewStructure.addMessage(type, text, null);
         errorViewTreeBuilder.updateTree();
     }
 
